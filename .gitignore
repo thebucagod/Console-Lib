@@ -1,0 +1,22 @@
+# Игнорировать исполняемые файлы
+*.exe
+*.dll
+*.ilk
+*.pdb
+*.obj
+
+# Игнорировать папки сборки
+Debug/
+Release/
+x64/
+build/
+
+# Игнорировать настройки Visual Studio
+.vs/
+*.sdf
+*.suo
+*.user
+
+# Игнорировать системные файлы
+Thumbs.db
+.DS_Store
