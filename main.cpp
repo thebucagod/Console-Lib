@@ -1,4 +1,3 @@
-#include <windows.h>
 #include <vector>
 #include <string>
 #include <iostream>
@@ -17,13 +16,11 @@ int main() {
     cons.styleLine("First line", text_color::BrightWhite, bg_color::Green);
     cons.styleLine("Second line", text_color::BrightRed, bg_color::Black);
     cons.styleLine("Third line", text_color::BrightCyan, bg_color::Magenta);
-
+    
     // Перемещаем курсор и выводим еще
     cons.setCursorPosition(5, 10);
     cons.styleLine("Positioned text", text_color::BrightGreen, bg_color::Red);
-
-
-
-	std::cin.get();
+    
+    std::cin.get();
 	return 0;
 } 

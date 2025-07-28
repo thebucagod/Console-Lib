@@ -2,13 +2,30 @@
 
 console::console() : _cursorPosition({0, 0}) {
 	_console = GetStdHandle(STD_OUTPUT_HANDLE);
+	updateConsoleInfo();
 }
 
 console::~console() {}
 
+// Viewport
+
+COORD console::getViewportSize() {
+	return {
+	static_cast<short>(_csbi.srWindow.Right - _csbi.srWindow.Left + 1),
+	static_cast<short>(_csbi.srWindow.Bottom - _csbi.srWindow.Top + 1)
+	};
+}
+
+
+// Buffer
+
+COORD console::getBufferSize() {
+	return _csbi.dwSize;
+}
+
 // Стилизация строк
 
-bool console::styleLine(const std::string line, text_color t_col, bg_color b_col) {
+bool console::styleLine(const std::string &line, text_color t_col, bg_color b_col) {
 	const short width = static_cast<short>(line.size());
 	const short height = 1;
 
@@ -65,6 +82,10 @@ COORD console::getCursorPosition() {
 		_cursorPosition = csbi.dwCursorPosition;
 	}
 	return _cursorPosition;
+}
+
+bool console::updateConsoleInfo() {
+	return GetConsoleScreenBufferInfo(_console, &_csbi);
 }
 
 
