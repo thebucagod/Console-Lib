@@ -19,6 +19,26 @@ COORD console::getViewportSize() {
 
 // Buffer
 
+bool console::setBufferSize(short width, short height) {
+	//Проврка минимальных размеров
+	width = max(width, _minSize.X);
+	height = max(height, _minSize.Y);
+	
+	if (width > SHRT_MAX || height > SHRT_MAX) {
+		return false;
+	}
+
+	COORD size = { width, height };
+	if (!SetConsoleScreenBufferSize(_console, size)) {
+		return false;
+	}
+
+	if (updateConsoleInfo()) {
+		return adjustViewportToBuffer();
+	}
+	return false;
+}
+
 COORD console::getBufferSize() {
 	return _csbi.dwSize;
 }
@@ -82,6 +102,10 @@ COORD console::getCursorPosition() {
 		_cursorPosition = csbi.dwCursorPosition;
 	}
 	return _cursorPosition;
+}
+
+bool console::adjustViewportToBuffer() {
+	return false;
 }
 
 bool console::updateConsoleInfo() {

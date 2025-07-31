@@ -20,7 +20,7 @@ public:
 	COORD getViewportSize();
 
 	// Buffer
-	bool setBufferSize(const short width, const short height);
+	bool setBufferSize(short width, short height);
 	COORD getBufferSize();
 
 
