@@ -34,7 +34,7 @@ bool console::setBufferSize(short width, short height) {
 	}
 
 	if (updateConsoleInfo()) {
-		return adjustViewportToBuffer();
+		return true;
 	}
 	return false;
 }
@@ -102,10 +102,6 @@ COORD console::getCursorPosition() {
 		_cursorPosition = csbi.dwCursorPosition;
 	}
 	return _cursorPosition;
-}
-
-bool console::adjustViewportToBuffer() {
-	return false;
 }
 
 bool console::updateConsoleInfo() {

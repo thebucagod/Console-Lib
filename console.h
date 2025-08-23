@@ -35,7 +35,6 @@ public:
 
 private:
 	// Проверка размеров
-	bool adjustViewportToBuffer();
 	bool updateConsoleInfo();
 
 
