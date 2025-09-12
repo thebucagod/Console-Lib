@@ -20,7 +20,16 @@ int main() {
     // Перемещаем курсор и выводим еще
     cons.setCursorPosition(5, 10);
     cons.styleLine("Positioned text", text_color::BrightGreen, bg_color::Red);
-    
+
+    COORD c_buf = cons.getBufferSize();
+    COORD c_view = cons.getViewportSize();
+
+    try {
+        cons.setBufferSize(2, c_view.Y);
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+    }
+        
     std::cin.get();
 	return 0;
 } 

@@ -1,5 +1,7 @@
 #include "console.h"
 
+#include <stdexcept>
+
 console::console() : _cursorPosition({0, 0}) {
 	_console = GetStdHandle(STD_OUTPUT_HANDLE);
 	updateConsoleInfo();
@@ -19,29 +21,41 @@ COORD console::getViewportSize() {
 
 // Buffer
 
-bool console::setBufferSize(short width, short height) {
+void console::setBufferSize(short width, short height) {
+	if (width > SHRT_MAX || height > SHRT_MAX) {
+		throw std::overflow_error(
+			std::string("Maximum size error: length or width is greater than SHRT_MAX.\n") +
+			"width: " + std::to_string(width) + '\n' +
+			"height: " + std::to_string(height) + '\n'
+		);
+	}
+
 	//Проврка минимальных размеров
 	width = max(width, _minSize.X);
 	height = max(height, _minSize.Y);
-	
-	if (width > SHRT_MAX || height > SHRT_MAX) {
-		return false;
-	}
 
 	COORD size = { width, height };
 	if (!SetConsoleScreenBufferSize(_console, size)) {
-		return false;
+		throw std::runtime_error(
+			std::string("Something went wrong during the resizing!\n") +
+			"width: " + std::to_string(width) + '\n' +
+			"height: " + std::to_string(height) + '\n'
+		);
 	}
 
-	if (updateConsoleInfo()) {
-		return true;
+	if (!updateConsoleInfo()) {
+		throw std::runtime_error(
+			std::string("Something went wrong while changing the console information!\n") +
+			"width: " + std::to_string(width) + '\n' +
+			"height: " + std::to_string(height) + '\n'
+		);
 	}
-	return false;
 }
 
 COORD console::getBufferSize() {
 	return _csbi.dwSize;
 }
+
 
 // Стилизация строк
 
@@ -77,6 +91,7 @@ bool console::styleLine(const std::string &line, text_color t_col, bg_color b_co
 	
 	return false;
 }
+
 
 // Работа с курсором консоли
 

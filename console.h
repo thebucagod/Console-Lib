@@ -12,7 +12,6 @@ public:
 	console();
 	~console();
 
-
 	// Viewport
 	bool setViewportSize(const short width, const short height);
 	bool setViewportPosition(const short x, const short y);
@@ -20,9 +19,8 @@ public:
 	COORD getViewportSize();
 
 	// Buffer
-	bool setBufferSize(short width, short height);
+	void setBufferSize(short width, short height);
 	COORD getBufferSize();
-
 
 	// Стилизация строк
 	bool styleLine(const std::string &line, text_color t_col, bg_color b_col);
