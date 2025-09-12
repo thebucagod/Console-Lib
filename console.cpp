@@ -11,6 +11,10 @@ console::~console() {}
 
 // Viewport
 
+//void console::setViewportSize(const short width, const short height) {
+//	
+//}
+
 COORD console::getViewportSize() {
 	return {
 	static_cast<short>(_csbi.srWindow.Right - _csbi.srWindow.Left + 1),
@@ -21,18 +25,23 @@ COORD console::getViewportSize() {
 
 // Buffer
 
-void console::setBufferSize(short width, short height) {
+void console::setBufferSize(const short width, const short height) {
 	if (width > SHRT_MAX || height > SHRT_MAX) {
 		throw std::overflow_error(
-			std::string("Maximum size error: length or width is greater than SHRT_MAX.\n") +
+			std::string("Maximum size error: width or height is greater than SHRT_MAX.\n") +
 			"width: " + std::to_string(width) + '\n' +
 			"height: " + std::to_string(height) + '\n'
 		);
 	}
 
 	//Проврка минимальных размеров
-	width = max(width, _minSize.X);
-	height = max(height, _minSize.Y);
+	if (width < _minSize.X || height < _minSize.Y) {
+		throw std::underflow_error(
+			std::string("Minimum size error: width or height is less than _minSize.\n") +
+			"width: " + std::to_string(width) + '\n' +
+			"height: " + std::to_string(height) + '\n'
+		);
+	}
 
 	COORD size = { width, height };
 	if (!SetConsoleScreenBufferSize(_console, size)) {

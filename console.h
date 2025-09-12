@@ -13,13 +13,13 @@ public:
 	~console();
 
 	// Viewport
-	bool setViewportSize(const short width, const short height);
-	bool setViewportPosition(const short x, const short y);
+	void setViewportSize(const short width, const short height);
+	void setViewportPosition(const short x, const short y);
 	COORD getViewportPosition();
 	COORD getViewportSize();
 
 	// Buffer
-	void setBufferSize(short width, short height);
+	void setBufferSize(const short width, const short height);
 	COORD getBufferSize();
 
 	// Стилизация строк
