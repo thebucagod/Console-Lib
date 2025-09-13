@@ -23,6 +23,13 @@ void console::setViewport(const SMALL_RECT& viewport) {
 	updateConsoleInfo();
 }
 
+void console::setViewportSize(const short width, const short height) {
+	SMALL_RECT newViewport = _csbi.srWindow;
+	newViewport.Right = newViewport.Left + width - 1;
+	newViewport.Bottom = newViewport.Top + height - 1;
+	setViewport(newViewport);
+}
+
 COORD console::getViewportSize() {
 	return {
 	static_cast<short>(_csbi.srWindow.Right - _csbi.srWindow.Left + 1),
