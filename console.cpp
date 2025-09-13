@@ -30,6 +30,22 @@ void console::setViewportSize(const short width, const short height) {
 	setViewport(newViewport);
 }
 
+void console::setViewportPosition(const short x, const short y) {
+	SMALL_RECT curViewport = _csbi.srWindow;
+	short width = curViewport.Right - curViewport.Left + 1;
+	short height = curViewport.Bottom - curViewport.Top + 1;
+
+	SMALL_RECT newViewport = {x, y, x + width -1, y + height - 1};
+	setViewport(newViewport);
+}
+
+COORD console::getViewportPosition() {
+	return {
+	static_cast<short>(_csbi.srWindow.Left),
+	static_cast<short>(_csbi.srWindow.Top),
+	};
+}
+
 COORD console::getViewportSize() {
 	return {
 	static_cast<short>(_csbi.srWindow.Right - _csbi.srWindow.Left + 1),
