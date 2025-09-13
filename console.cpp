@@ -9,11 +9,19 @@ console::console() : _cursorPosition({0, 0}) {
 
 console::~console() {}
 
+
 // Viewport
 
-//void console::setViewportSize(const short width, const short height) {
-//	
-//}
+void console::setViewport(const SMALL_RECT& viewport) {
+	if (!SetConsoleWindowInfo(_console, true, &viewport)) {
+		throw std::runtime_error(
+			"Failed to set console viewport: " +
+			std::to_string(GetLastError())
+		);
+	}
+
+	updateConsoleInfo();
+}
 
 COORD console::getViewportSize() {
 	return {
@@ -52,13 +60,7 @@ void console::setBufferSize(const short width, const short height) {
 		);
 	}
 
-	if (!updateConsoleInfo()) {
-		throw std::runtime_error(
-			std::string("Something went wrong while changing the console information!\n") +
-			"width: " + std::to_string(width) + '\n' +
-			"height: " + std::to_string(height) + '\n'
-		);
-	}
+	updateConsoleInfo();
 }
 
 COORD console::getBufferSize() {
