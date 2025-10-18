@@ -128,7 +128,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="console.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="basic_example.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="color.h" />
