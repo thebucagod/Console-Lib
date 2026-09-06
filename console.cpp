@@ -12,6 +12,11 @@ console::~console() {}
 
 // Viewport
 
+/// @brief Задает положение и размер видимой области (viewport) консоли.
+/// @details Применяет заданные координаты через WinAPI. 
+/// В случае успеха автоматически обновляет внутренний кэш информации о консоли.
+/// @param viewport Структура SMALL_RECT, задающая новые границы окна.
+/// @throws std::runtime_error Если системный вызов SetConsoleWindowInfo завершился с ошибкой.
 void console::setViewport(const SMALL_RECT& viewport) {
 	if (!SetConsoleWindowInfo(_console, true, &viewport)) {
 		throw std::runtime_error(
@@ -23,6 +28,12 @@ void console::setViewport(const SMALL_RECT& viewport) {
 	updateConsoleInfo();
 }
 
+/// @brief Изменяет размеры видимой области (viewport) консоли
+/// @details Метод масштабирует видимую область, сохраняя фиксированную позицию
+/// её левого верхнего угла. Используется, когда необходимо расширить или сузить 
+/// рабочую зону отображения без смещения текущего содержимого относительно начала координат.
+/// @param width Новая ширина видимой области.
+/// @param height Новая высота видимой области.
 void console::setViewportSize(const short width, const short height) {
 	SMALL_RECT newViewport = _csbi.srWindow;
 	newViewport.Right = newViewport.Left + width - 1;
@@ -30,15 +41,24 @@ void console::setViewportSize(const short width, const short height) {
 	setViewport(newViewport);
 }
 
+/// @brief Смещает видимую область (viewport) консоли в заданные координаты.
+/// @details Метод перемещает видимую область, строго сохроняя её текущие размеры.
+/// Используется для реализации прокрутки (скроллинга) содержимого буфера консоли
+/// без изменения масштаба изображения.
+/// @param x Новая координата X левого верхнего угла.
+/// @param y Новая координата Y левого верхнего угла.
 void console::setViewportPosition(const short x, const short y) {
 	SMALL_RECT curViewport = _csbi.srWindow;
 	short width = curViewport.Right - curViewport.Left + 1;
 	short height = curViewport.Bottom - curViewport.Top + 1;
 
-	SMALL_RECT newViewport = {x, y, x + width -1, y + height - 1};
+	SMALL_RECT newViewport = {x, y, x + width - 1, y + height - 1};
 	setViewport(newViewport);
 }
-
+ 
+/// @brief Возвращает координаты левого верхнего угла видимой области.
+/// @return Структура COORD, где поле X содержит позицию по горизонтали,
+///			а поле Y - по вертикали (относительно начала буфера консоли).
 COORD console::getViewportPosition() {
 	return {
 	static_cast<short>(_csbi.srWindow.Left),
@@ -46,6 +66,10 @@ COORD console::getViewportPosition() {
 	};
 }
 
+/// @brief Возвращает текущие размеры видимой области консоли.
+/// @return Структура COORD, где поле X содержит ширину,
+///			а поле Y - высоту области в символах.
+/// @note Значения рассчитываются на основе кэшированного состояние (_csbi).
 COORD console::getViewportSize() {
 	return {
 	static_cast<short>(_csbi.srWindow.Right - _csbi.srWindow.Left + 1),
@@ -57,6 +81,7 @@ COORD console::getViewportSize() {
 // Buffer
 
 void console::setBufferSize(const short width, const short height) {
+	// Проверка на выход за границы возможных величин
 	if (width > SHRT_MAX || height > SHRT_MAX) {
 		throw std::overflow_error(
 			std::string("Maximum size error: width or height is greater than SHRT_MAX.\n") +
@@ -65,7 +90,7 @@ void console::setBufferSize(const short width, const short height) {
 		);
 	}
 
-	//Проврка минимальных размеров
+	// Проврка минимальных размеров
 	if (width < _minSize.X || height < _minSize.Y) {
 		throw std::underflow_error(
 			std::string("Minimum size error: width or height is less than _minSize.\n") +
@@ -94,37 +119,38 @@ COORD console::getBufferSize() {
 // Стилизация строк
 
 bool console::styleLine(const std::string &line, text_color t_col, bg_color b_col) {
-	const short width = static_cast<short>(line.size());
-	const short height = 1;
+		const short width = static_cast<short>(line.size());
+		const short height = 1;
 
-	COORD bufferSize = { width, height };
-	COORD bufferCoord = { 0, 0 };
-	SMALL_RECT writeRegion = { _cursorPosition.X, _cursorPosition.Y, _cursorPosition.X + width - 1, _cursorPosition.Y + height - 1 };
+		COORD bufferSize = { width, height };
+		COORD bufferCoord = { 0, 0 };	// Координаты внутри источника, с которых начинается чтение
+		SMALL_RECT writeRegion = { _cursorPosition.X, _cursorPosition.Y, _cursorPosition.X + width - 1, _cursorPosition.Y + height - 1 };
 
-	std::vector<CHAR_INFO> buffer(line.size());
+		// Массив символов в структуре CHAR_INFO
+		std::vector<CHAR_INFO> buffer(line.size());
 
-	WORD text_style = static_cast<WORD>(t_col);
-	WORD bg_style = static_cast<WORD>(b_col);
+		WORD text_style = static_cast<WORD>(t_col);
+		WORD bg_style = static_cast<WORD>(b_col);
 
-	for (short x = 0; x < width; x++) {
-		CHAR_INFO& ci = buffer[x];
+		for (short x = 0; x < width; x++) {
+			CHAR_INFO& ci = buffer[x];
 
-		ci.Char.AsciiChar = line[x];
-		ci.Attributes = text_style | bg_style;
-	}
+			ci.Char.AsciiChar = line[x];
+			ci.Attributes = text_style | bg_style;
+		}
 
-	WriteConsoleOutput(
-		_console,
-		buffer.data(),
-		bufferSize,
-		bufferCoord,
-		&writeRegion
-	);
+		WriteConsoleOutput(
+			_console,        // 1. Дескриптор консоли
+			buffer.data(),   // 2. Указатель на наш массив CHAR_INFO (источник)
+			bufferSize,      // 3. Размер источника
+			bufferCoord,     // 4. С какой точки в источнике начинать читать
+			&writeRegion     // 5. Указатель на прямоугольник на экране (приемник)
+		);
 
-	moveToNextLine();
+		moveToNextLine();
 	
-	return false;
-}
+		return false;
+	}
 
 
 // Работа с курсором консоли
