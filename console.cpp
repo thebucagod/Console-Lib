@@ -90,7 +90,7 @@ void console::setBufferSize(const short width, const short height) {
 	// Проверка на выход за границы возможных величин
 	if (width > SHRT_MAX || height > SHRT_MAX) {
 		throw std::overflow_error(
-			std::string("Maximum size error: width or height is greater than SHRT_MAX.\n") +
+			std::string("Maximum size error: width or height of buffer is greater than SHRT_MAX.\n") +
 			"width: " + std::to_string(width) + '\n' +
 			"height: " + std::to_string(height) + '\n'
 		);
@@ -99,7 +99,7 @@ void console::setBufferSize(const short width, const short height) {
 	// Проврка минимальных размеров
 	if (width < _minSize.X || height < _minSize.Y) {
 		throw std::underflow_error(
-			std::string("Minimum size error: width or height is less than _minSize.\n") +
+			std::string("Minimum size error: width or height of buffer is less than _minSize.\n") +
 			"width: " + std::to_string(width) + '\n' +
 			"height: " + std::to_string(height) + '\n'
 		);
@@ -121,7 +121,7 @@ void console::setBufferSize(const short width, const short height) {
 /// @return Структура COORD, где поле X содержит количество столбцов,
 ///			а поле Y - количество строк.
 /// @note Значения рассчитываются на основе кэшированного состояние (_csbi).
-COORD console::getBufferSize() {
+COORD console::getBufferSize() const {
 	return _csbi.dwSize;
 }
 

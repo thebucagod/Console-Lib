@@ -21,7 +21,7 @@ public:
 
 	// Buffer
 	void setBufferSize(const short width, const short height);
-	COORD getBufferSize();
+	COORD getBufferSize() const;
 
 	// Стилизация строк
 	bool styleLine(const std::string &line, text_color t_col, bg_color b_col);
