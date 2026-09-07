@@ -13,11 +13,11 @@ public:
 	~console();
 
 	// Viewport
-	void setViewport(const SMALL_RECT& viewport);
+	void setViewportRECT(const SMALL_RECT& viewport);
 	void setViewportSize(const short width, const short height);
 	void setViewportPosition(const short x, const short y);
-	COORD getViewportPosition();
-	COORD getViewportSize();
+	COORD getViewportPosition() const;
+	COORD getViewportSize() const;
 
 	// Buffer
 	void setBufferSize(const short width, const short height);

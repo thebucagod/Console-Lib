@@ -17,10 +17,10 @@ console::~console() {}
 /// В случае успеха автоматически обновляет внутренний кэш информации о консоли.
 /// @param viewport Структура SMALL_RECT, задающая новые границы окна.
 /// @throws std::runtime_error Если системный вызов SetConsoleWindowInfo завершился с ошибкой.
-void console::setViewport(const SMALL_RECT& viewport) {
-	if (!SetConsoleWindowInfo(_console, true, &viewport)) {
+void console::setViewportRECT(const SMALL_RECT& viewportRECT) {
+	if (!SetConsoleWindowInfo(_console, true, &viewportRECT)) {
 		throw std::runtime_error(
-			"Failed to set console viewport: " +
+			"Failed to set RECT for console viewport: " +
 			std::to_string(GetLastError())
 		);
 	}
@@ -38,7 +38,7 @@ void console::setViewportSize(const short width, const short height) {
 	SMALL_RECT newViewport = _csbi.srWindow;
 	newViewport.Right = newViewport.Left + width - 1;
 	newViewport.Bottom = newViewport.Top + height - 1;
-	setViewport(newViewport);
+	setViewportRECT(newViewport);
 }
 
 /// @brief Смещает видимую область (viewport) консоли в заданные координаты.
@@ -53,13 +53,13 @@ void console::setViewportPosition(const short x, const short y) {
 	short height = curViewport.Bottom - curViewport.Top + 1;
 
 	SMALL_RECT newViewport = {x, y, x + width - 1, y + height - 1};
-	setViewport(newViewport);
+	setViewportRECT(newViewport);
 }
  
 /// @brief Возвращает координаты левого верхнего угла видимой области.
 /// @return Структура COORD, где поле X содержит позицию по горизонтали,
 ///			а поле Y - по вертикали (относительно начала буфера консоли).
-COORD console::getViewportPosition() {
+COORD console::getViewportPosition() const {
 	return {
 	static_cast<short>(_csbi.srWindow.Left),
 	static_cast<short>(_csbi.srWindow.Top),
@@ -70,7 +70,7 @@ COORD console::getViewportPosition() {
 /// @return Структура COORD, где поле X содержит ширину,
 ///			а поле Y - высоту области в символах.
 /// @note Значения рассчитываются на основе кэшированного состояние (_csbi).
-COORD console::getViewportSize() {
+COORD console::getViewportSize() const {
 	return {
 	static_cast<short>(_csbi.srWindow.Right - _csbi.srWindow.Left + 1),
 	static_cast<short>(_csbi.srWindow.Bottom - _csbi.srWindow.Top + 1)
