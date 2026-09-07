@@ -128,6 +128,13 @@ COORD console::getBufferSize() const {
 
 // Стилизация строк
 
+/// @brief Выводит строку на текущее положение курсора, с заданными цветом символов и фона.
+/// @details Отображение принимаемых данных в буфере консоли.
+/// Необходимо для вывода стилизованных строк.
+/// @note Вывод выполняется через WinAPI метод WriteConsoleOutput.
+/// @param line строка-данные для записи в консоль.
+/// @param t_col цвет текста строки.
+/// @param b_col цвет текста фона строки.
 bool console::styleLine(const std::string &line, text_color t_col, bg_color b_col) {
 		const short width = static_cast<short>(line.size());
 		const short height = 1;
