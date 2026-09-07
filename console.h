@@ -24,7 +24,7 @@ public:
 	COORD getBufferSize() const;
 
 	// Стилизация строк
-	bool styleLine(const std::string &line, text_color t_col, bg_color b_col);
+	bool printStyleLine(const std::string& line, text_color t_col = text_color::White, bg_color b_col = bg_color::Black);
 
 	// Работа с курсором консоли
 	void setCursorPosition(const short x, const short y);

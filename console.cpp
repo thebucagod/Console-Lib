@@ -133,9 +133,9 @@ COORD console::getBufferSize() const {
 /// Необходимо для вывода стилизованных строк.
 /// @note Вывод выполняется через WinAPI метод WriteConsoleOutput.
 /// @param line строка-данные для записи в консоль.
-/// @param t_col цвет текста строки.
-/// @param b_col цвет текста фона строки.
-bool console::styleLine(const std::string &line, text_color t_col, bg_color b_col) {
+/// @param t_col цвет текста строки (text_color::White по умолчанию).
+/// @param b_col цвет текста фона строки (bg_color::Black по умолчанию).
+bool console::printStyleLine(const std::string &line, text_color t_col, bg_color b_col) {
 		const short width = static_cast<short>(line.size());
 		const short height = 1;
 
@@ -163,9 +163,7 @@ bool console::styleLine(const std::string &line, text_color t_col, bg_color b_co
 			bufferCoord,     // 4. С какой точки в источнике начинать читать
 			&writeRegion     // 5. Указатель на прямоугольник на экране (приемник)
 		);
-
-		moveToNextLine();
-	
+			
 		return false;
 	}
 
