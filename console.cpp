@@ -80,6 +80,12 @@ COORD console::getViewportSize() const {
 
 // Buffer
 
+/// @brief Изменяет размер буфера (buffer).
+/// @details Метод масштабирует размер буфера.
+/// Задаёт новые размеры в символьлных стоблцах и строках.
+/// Используется когда необходимо изменить размеры буфера, отображающий данные.
+/// @param width Новое количество столбцов буфера.
+/// @param height Новое количество строк буфера.
 void console::setBufferSize(const short width, const short height) {
 	// Проверка на выход за границы возможных величин
 	if (width > SHRT_MAX || height > SHRT_MAX) {
@@ -111,6 +117,10 @@ void console::setBufferSize(const short width, const short height) {
 	updateConsoleInfo();
 }
 
+/// @brief Возвращает текущее количество строк и столбцов буфера, type COORD.
+/// @return Структура COORD, где поле X содержит количество столбцов,
+///			а поле Y - количество строк.
+/// @note Значения рассчитываются на основе кэшированного состояние (_csbi).
 COORD console::getBufferSize() {
 	return _csbi.dwSize;
 }
