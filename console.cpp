@@ -55,7 +55,7 @@ void console::setViewportPosition(const short x, const short y) {
 	SMALL_RECT newViewport = {x, y, x + width - 1, y + height - 1};
 	setViewportRECT(newViewport);
 }
- 
+
 /// @brief Возвращает координаты левого верхнего угла видимой области.
 /// @return Структура COORD, где поле X содержит позицию по горизонтали,
 ///			а поле Y - по вертикали (относительно начала буфера консоли).
@@ -175,13 +175,32 @@ bool console::printStyleLine(const std::string &line, text_color t_col, bg_color
 // Работа с курсором консоли
 
 /// @brief Устанавливает курсор на передоваему позицию.
-/// @note Установка курсора выполняется через WinAPI метод SetConsolePosition()
-/// @throws ...
+/// @note Установка курсора выполняется через WinAPI метод SetConsolePosition().
+/// @throws std::out_of_range Если переданные X или Y больше SHRT_MAX или меньше 0.
+/// @throws std::runtime_error Если системный вызов SetConsoleCursorPosition().
 void console::setCursorPosition(const short x, const short y) {
+	// Проверка на минимальные и максимальные размеры.
+	if (x < 0 || y < 0 || x > SHRT_MAX || y > SHRT_MAX) {
+		throw std::out_of_range(
+			std::string("Cursor position is out of valid SHORT range!\n") +
+			"X: " + std::to_string(x) + '\n' +
+			"Y: " + std::to_string(y) + '\n'
+		);
+	}	
+
+	// Номер столбца
 	_cursorPosition.X = x;
+	// Номер строки
 	_cursorPosition.Y = y;
 
-	SetConsoleCursorPosition(_console, _cursorPosition);
+	// Применяем новые координаты WinAPI методом SetConsoleCursorPosition()
+	if (!SetConsoleCursorPosition(_console, _cursorPosition)) {
+		throw std::runtime_error(
+			std::string("Something went wrong during the operation (SetConsoleCursorPosition)!\n") +
+			"X: " + std::to_string(x) + '\n' +
+			"Y: " + std::to_string(y) + '\n'
+		);
+	}
 }
 
 /// @brief Устанавливает курсор на следующую строку.
