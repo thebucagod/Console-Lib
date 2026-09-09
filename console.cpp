@@ -11,12 +11,6 @@ console::~console() {}
 
 
 // Viewport
-
-/// @brief Задает положение и размер видимой области (viewport) консоли.
-/// @details Применяет заданные координаты через WinAPI. 
-/// В случае успеха автоматически обновляет внутренний кэш информации о консоли.
-/// @param viewport Структура SMALL_RECT, задающая новые границы окна.
-/// @throws std::runtime_error Если системный вызов SetConsoleWindowInfo завершился с ошибкой.
 void console::setViewportRECT(const SMALL_RECT& viewportRECT) {
 	if (!SetConsoleWindowInfo(_console, true, &viewportRECT)) {
 		throw std::runtime_error(
@@ -28,12 +22,6 @@ void console::setViewportRECT(const SMALL_RECT& viewportRECT) {
 	updateConsoleInfo();
 }
 
-/// @brief Изменяет размеры видимой области (viewport) консоли
-/// @details Метод масштабирует видимую область, сохраняя фиксированную позицию
-/// её левого верхнего угла. Используется, когда необходимо расширить или сузить 
-/// рабочую зону отображения без смещения текущего содержимого относительно начала координат.
-/// @param width Новая ширина видимой области.
-/// @param height Новая высота видимой области.
 void console::setViewportSize(const short width, const short height) {
 	SMALL_RECT newViewport = _csbi.srWindow;
 	newViewport.Right = newViewport.Left + width - 1;
@@ -41,12 +29,6 @@ void console::setViewportSize(const short width, const short height) {
 	setViewportRECT(newViewport);
 }
 
-/// @brief Смещает видимую область (viewport) консоли в заданные координаты.
-/// @details Метод перемещает видимую область, строго сохроняя её текущие размеры.
-/// Используется для реализации прокрутки (скроллинга) содержимого буфера консоли
-/// без изменения масштаба изображения.
-/// @param x Новая координата X левого верхнего угла.
-/// @param y Новая координата Y левого верхнего угла.
 void console::setViewportPosition(const short x, const short y) {
 	SMALL_RECT curViewport = _csbi.srWindow;
 	short width = curViewport.Right - curViewport.Left + 1;
@@ -56,9 +38,6 @@ void console::setViewportPosition(const short x, const short y) {
 	setViewportRECT(newViewport);
 }
 
-/// @brief Возвращает координаты левого верхнего угла видимой области.
-/// @return Структура COORD, где поле X содержит позицию по горизонтали,
-///			а поле Y - по вертикали (относительно начала буфера консоли).
 COORD console::getViewportPosition() const {
 	return {
 	static_cast<short>(_csbi.srWindow.Left),
@@ -66,10 +45,6 @@ COORD console::getViewportPosition() const {
 	};
 }
 
-/// @brief Возвращает текущие размеры видимой области консоли.
-/// @return Структура COORD, где поле X содержит ширину,
-///			а поле Y - высоту области в символах.
-/// @note Значения рассчитываются на основе кэшированного состояние (_csbi).
 COORD console::getViewportSize() const {
 	return {
 	static_cast<short>(_csbi.srWindow.Right - _csbi.srWindow.Left + 1),
@@ -80,16 +55,6 @@ COORD console::getViewportSize() const {
 
 // Buffer
 
-/// @brief Изменяет размер буфера (buffer).
-/// @details Метод масштабирует размер буфера.
-/// Задаёт новые размеры в символьлных стоблцах и строках.
-/// Используется когда необходимо изменить размеры буфера, отображающий данные.
-/// @param width Новое количество столбцов буфера.
-/// @param height Новое количество строк буфера.
-/// @throws std::overflow_error Если переданные width или height больше SHRT_MAX.
-/// @throws std::underflow_error Если переданные width или height меньше _minSize.
-/// @throws std::runtime_error Если системный вызов SetConsoleScreenBufferSize()
-/// внутри данного метода завершился с ошибкой.
 void console::setBufferSize(const short width, const short height) {
 	// Проверка на выход за границы возможных величин
 	if (width > SHRT_MAX || height > SHRT_MAX) {
@@ -121,10 +86,6 @@ void console::setBufferSize(const short width, const short height) {
 	updateConsoleInfo();
 }
 
-/// @brief Возвращает текущее количество строк и столбцов буфера, type COORD.
-/// @return Структура COORD, где поле X содержит количество столбцов,
-///			а поле Y - количество строк.
-/// @note Значения рассчитываются на основе кэшированного состояние (_csbi).
 COORD console::getBufferSize() const {
 	return _csbi.dwSize;
 }
@@ -132,13 +93,6 @@ COORD console::getBufferSize() const {
 
 // Стилизация строк
 
-/// @brief Выводит строку на текущее положение курсора, с заданными цветом символов и фона.
-/// @details Отображение принимаемых данных в буфере консоли.
-/// Необходимо для вывода стилизованных строк.
-/// @param line строка-данные для записи в консоль.
-/// @param t_col цвет текста строки (text_color::White по умолчанию).
-/// @param b_col цвет текста фона строки (bg_color::Black по умолчанию).
-/// @note Вывод выполняется через WinAPI метод WriteConsoleOutput.
 bool console::printStyleLine(const std::string &line, text_color t_col, bg_color b_col) {
 		const short width = static_cast<short>(line.size());
 		const short height = 1;
@@ -174,10 +128,6 @@ bool console::printStyleLine(const std::string &line, text_color t_col, bg_color
 
 // Работа с курсором консоли
 
-/// @brief Устанавливает курсор на передоваему позицию.
-/// @note Установка курсора выполняется через WinAPI метод SetConsolePosition().
-/// @throws std::out_of_range Если переданные X или Y больше SHRT_MAX или меньше 0.
-/// @throws std::runtime_error Если системный вызов SetConsoleCursorPosition().
 void console::setCursorPosition(const short x, const short y) {
 	// Проверка на минимальные и максимальные размеры.
 	if (x < 0 || y < 0 || x > SHRT_MAX || y > SHRT_MAX) {
@@ -203,11 +153,6 @@ void console::setCursorPosition(const short x, const short y) {
 	}
 }
 
-/// @brief Устанавливает курсор на следующую строку.
-/// @note Установка курсора выполняется через WinAPI метод SetConsolePosition().
-/// @param line_begin 0 - если курсор должен остаться на том же столбце
-///					  1 - если курсор должен уйти в начало строки (на нулевой столбец)
-/// @throws ...
 void console::moveToNextLine(bool line_begin) {
 	if (line_begin)
 		_cursorPosition.X = 0;
@@ -217,9 +162,6 @@ void console::moveToNextLine(bool line_begin) {
 	SetConsoleCursorPosition(_console, _cursorPosition);
 }
 
-/// @brief Возвращает COORD текущего положения курсора в символьных столбцах и строках (начиная с 0)
-/// @return Структура COORD, где поле X содержит текущий столбец,
-///			а поле Y - текущая строка.
 COORD console::getCursorPosition() {
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	if (GetConsoleScreenBufferInfo(_console, &csbi)) {
@@ -228,17 +170,12 @@ COORD console::getCursorPosition() {
 	return _cursorPosition;
 }
 
-/// @brief Актуализирует данные о консоли
-/// @details Актуализирует все поля структуры _CONSOLE_SCREEN_BUFFER_INFO:
-/// dwSize - размеры буфера,
-/// dwCursorPosition - Абсолютные координаты курсора,
-/// wAttributes - Аттрибуты применимые к текущему отображению данных в буфере,
-/// srWindow - Абсолютные координаты верхнего левого и нижнего прававого углов вьюпорта,
-/// dwMaximumWindowSize - максимальное возможное значение размеров вьюпорта на данный момент.
-/// @warning Пользователь может самостоятельно изменять размер вьюпорта,
-/// эти данные в классе на данный момент никак не регулируются автоматически.
-/// Понимаю, что нельзя каждый раз предугадать поведение пользователя, но по возможности рекомендуется использовать данный метод
-/// при значимых изменениях консоли для актуализации данных
+ // Актуализирует все поля структуры _CONSOLE_SCREEN_BUFFER_INFO:
+ // dwSize - размеры буфера,
+ // dwCursorPosition - Абсолютные координаты курсора,
+ // wAttributes - Аттрибуты применимые к текущему отображению данных в буфере,
+ // srWindow - Абсолютные координаты верхнего левого и нижнего прававого углов вьюпорта,
+ // dwMaximumWindowSize - максимальное возможное значение размеров вьюпорта на данный момент.
 bool console::updateConsoleInfo() {
 	return GetConsoleScreenBufferInfo(_console, &_csbi);
 }
