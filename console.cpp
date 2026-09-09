@@ -91,9 +91,10 @@ COORD console::getBufferSize() const {
 }
 
 
-// Стилизация строк
+/* ===== СТИЛИЗАЦИЯ СТРОК ===== */
 
-bool console::printStyleLine(const std::string &line, text_color t_col, bg_color b_col) {
+// Метод для работы с Unicode строками
+void console::printStyleLine(const std::wstring &line, text_color t_col, bg_color b_col) {
 		const short width = static_cast<short>(line.size());
 		const short height = 1;
 
@@ -110,21 +111,57 @@ bool console::printStyleLine(const std::string &line, text_color t_col, bg_color
 		for (short x = 0; x < width; x++) {
 			CHAR_INFO& ci = buffer[x];
 
-			ci.Char.AsciiChar = line[x];
+			ci.Char.UnicodeChar = line[x];
 			ci.Attributes = text_style | bg_style;
 		}
 
-		WriteConsoleOutput(
+		if (!WriteConsoleOutputW(
 			_console,        // 1. Дескриптор консоли
 			buffer.data(),   // 2. Указатель на наш массив CHAR_INFO (источник)
 			bufferSize,      // 3. Размер источника
 			bufferCoord,     // 4. С какой точки в источнике начинать читать
 			&writeRegion     // 5. Указатель на прямоугольник на экране (приемник)
-		);
-			
-		return false;
+		)) {
+			throw std::runtime_error(
+				std::string("Something went wrong during the operation (WriteConsoleOutputW())!\n")
+			);
+		}
 	}
 
+// Метод для работы с ANSI строками
+void console::printStyleLine(const std::string& line, text_color t_col, bg_color b_col) {
+	const short width = static_cast<short>(line.size());
+	const short height = 1;
+
+	COORD bufferSize = { width, height };
+	COORD bufferCoord = { 0, 0 };	// Координаты внутри источника, с которых начинается чтение
+	SMALL_RECT writeRegion = { _cursorPosition.X, _cursorPosition.Y, _cursorPosition.X + width - 1, _cursorPosition.Y + height - 1 };
+
+	// Массив символов в структуре CHAR_INFO
+	std::vector<CHAR_INFO> buffer(line.size());
+
+	WORD text_style = static_cast<WORD>(t_col);
+	WORD bg_style = static_cast<WORD>(b_col);
+
+	for (short x = 0; x < width; x++) {
+		CHAR_INFO& ci = buffer[x];
+
+		ci.Char.AsciiChar = line[x];
+		ci.Attributes = text_style | bg_style;
+	}
+
+	if (!WriteConsoleOutputA(
+		_console,        // 1. Дескриптор консоли
+		buffer.data(),   // 2. Указатель на наш массив CHAR_INFO (источник)
+		bufferSize,      // 3. Размер источника
+		bufferCoord,     // 4. С какой точки в источнике начинать читать
+		&writeRegion     // 5. Указатель на прямоугольник на экране (приемник)
+	)) {
+		throw std::runtime_error(
+			std::string("Something went wrong during the operation (WriteConsoleOutputW())!\n")
+		);
+	}
+}
 
 // Работа с курсором консоли
 

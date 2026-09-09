@@ -72,14 +72,27 @@ public:
 
 	// Стилизация строк
 
-	/// @brief Выводит строку на текущее положение курсора, с заданными цветом символов и фона.
-	/// @details Отображение принимаемых данных в буфере консоли.
-	/// Необходимо для вывода стилизованных строк.
-	/// @param line строка-данные для записи в консоль.
-	/// @param t_col цвет текста строки (text_color::White по умолчанию).
-	/// @param b_col цвет текста фона строки (bg_color::Black по умолчанию).
-	/// @note Вывод выполняется через WinAPI метод WriteConsoleOutput.
-	bool printStyleLine(const std::string& line, text_color t_col = text_color::White, bg_color b_col = bg_color::Black);
+	/// @brief Выводит Unicode-строку на текущее положение курсора, с заданными цветами.
+	/// @details Рекомендуемый метод для вывода текста. Он гарантирует корректное
+	/// отображение кириллицы, псевдографики и специальных символов независимо от
+	/// языковых настроек операционной системы пользователя.
+	/// @param line Широкая строка (std::wstring) для записи в консоль.
+	/// @param t_col цвет текста (по умолчанию text_color::White).
+	/// @param b_col цвет текста (по умолчанию bg_color::Black).
+	/// @note Внутри используется WinAPI метод WriteConsoleOutputW.
+	void printStyleLine(const std::wstring& line, text_color t_col = text_color::White, bg_color b_col = bg_color::Black);
+
+	/// @brief Выводит ANSI-строку на текущее положение курсора, с заданными цветами.
+	/// @details Обеспечивает максимальную производительность за счёт ANSI кодировки и отсутвия конвертации.
+	/// @param line Узкая строка (std::string) для записи в консоль.
+	/// @param t_col цвет текста (по умолчанию text_color::White).
+	/// @param b_col цвет текста (по умолчанию bg_color::Black).
+	/// @warning Используйте этот метод **только для латиницы и базовых ASCII-символов**. 
+	/// Вывод кириллицы через этот метод зависит от системной кодовой страницы (CP_ACP) и 
+	/// гарантированно приведет к отображению нечитаемых символов на компьютерах 
+	/// с нерусскими языковыми настройками Windows.
+	/// @note Внутри используется WinAPI метод WriteConsoleOutputA.
+	void printStyleLine(const std::string& line, text_color t_col = text_color::White, bg_color b_col = bg_color::Black);
 
 	// Работа с курсором консоли
 
@@ -102,7 +115,7 @@ public:
 
 
 private:
-	// Обновление _csbi.
+	// Обновление _csbi	.
 	bool updateConsoleInfo();
 
 
