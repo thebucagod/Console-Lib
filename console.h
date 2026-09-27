@@ -7,16 +7,12 @@
 
 #include "color.h"
 
-class console {
-public:
-	console();
-	~console();
-
+namespace console {
 	// Viewport
 
 	/// @brief Sets the position and size of the console viewport.
-	/// @details Applise the scpecified coordinates using the WinAPI. 
-	/// On succes, it automatically updates the internal console information cache.
+	/// @details Applies the specified coordinates using the WinAPI. 
+	/// On success, it automatically updates the internal console information cache.
 	/// @param viewport - A SMALL_RECT structure specifying the new window bounds.
 	/// @throws std::runtime_error - If the SetConsoleWindowInfo() system call fails.
 	void setViewportRECT(const SMALL_RECT& viewport);
@@ -30,27 +26,27 @@ public:
 	void setViewportSize(const short width, const short height);
 
 	/// @brief Shifts the console viewport to the specified coordinates.
-	/// @details This method moves the viewport while sctrictly pressing its 
+	/// @details This method moves the viewport while strictly preserving its 
 	/// current dimensions.
-	/// It is used to implement scrolling of the console butter content
+	/// It is used to implement scrolling of the console buffer content
 	/// without altering the display scale.
 	/// @param x - The new X coordinate of the top-left.
 	/// @param y - The new Y coordinate of the top-left.
 	void setViewportPosition(const short x, const short y);
 
 	/// @brief Returns the top-left corner coordinates of the viewport.
-	/// @return a COORD structre where the X field contatins the horizontal position,
-	///			and the Y field contatins the fertical position
+	/// @return a COORD structure where the X field contains the horizontal position,
+	///			and the Y field contains the vertical position
 	/// (relative to the console buffre origin)
-	COORD getViewportPosition() const;
+	COORD getViewportPosition();
 
 	/// @brief Returns the currents dimensions of the current viewport.
-	/// @return A COORD strcutere whree the X fields contatins the width,
+	/// @return A COORD structure whree the X fields contains the width,
 	///			and the Y field contains the height og the area in characters.
 	/// @note the values are derived from the cached state (_csbi).
 	/// @warning If the user manually resizes the viewport,
 	/// the data may become inaccurate.
-	COORD getViewportSize() const;
+	COORD getViewportSize();
 
 	// Buffer
 
@@ -70,7 +66,7 @@ public:
 	/// @return A COORD structure where the X field contains the number of columns,
 	///         and the Y field contains the number of rows.
 	/// @note The values are derived from the cached state (_csbi).
-	COORD getBufferSize() const;
+	COORD getBufferSize();
 
 	// Line styling
 
@@ -114,25 +110,4 @@ public:
 	/// @return A COORD structure where the X field contains the current column,
 	///         and the Y field contains the current row.
 	COORD getCursorPosition();
-
-
-private:
-	// Updates _csbi.
-	bool updateConsoleInfo();
-
-
-	HANDLE _console;
-	COORD _cursorPosition = { 0, 0 };
-	COORD _minSize = { 80, 25 };
-	CONSOLE_SCREEN_BUFFER_INFO _csbi;
-	
-	/*
-	typedef struct _CONSOLE_SCREEN_BUFFER_INFO {
-		COORD      dwSize;							contains the size of the console screen buffer, in character columns and rows
-		COORD      dwCursorPosition;				contains the column and row coordinates of the cursor in the console screen buffer
-		WORD       wAttributes;						The attributes of the characters written to a screen buffer
-		SMALL_RECT srWindow;						contains the console screen buffer coordinates of the upper-left and lower-right corners of the display window
-		COORD      dwMaximumWindowSize;				contains the maximum size of the console window, in character columns and rows, given the current screen buffer size and font and the screen size.
-	} CONSOLE_SCREEN_BUFFER_INFO;
-	*/
-};
+}

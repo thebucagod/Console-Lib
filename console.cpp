@@ -2,17 +2,38 @@
 
 #include <stdexcept>
 
-console::console() : _cursorPosition({0, 0}) {
-	_console = GetStdHandle(STD_OUTPUT_HANDLE);
-	updateConsoleInfo();
+namespace {
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	CONSOLE_SCREEN_BUFFER_INFO _csbi;
+
+	COORD _minSize = { 50, 1 };
+	COORD _cursorPosition = { 0, 0 };
+
+	// Актуализирует все поля структуры _CONSOLE_SCREEN_BUFFER_INFO:
+	// dwSize - размеры буфера,
+	// dwCursorPosition - Абсолютные координаты курсора,
+	// wAttributes - Аттрибуты применимые к текущему отображению данных в буфере,
+	// srWindow - Абсолютные координаты верхнего левого и нижнего прававого углов вьюпорта,
+	// dwMaximumWindowSize - максимальное возможное значение размеров вьюпорта на данный момент.
+	bool updateConsoleInfo() {
+		return GetConsoleScreenBufferInfo(hConsole, &_csbi);
+	}
 }
 
-console::~console() {}
-
+/*												22 byte
+typedef struct _CONSOLE_SCREEN_BUFFER_INFO {
+	COORD      dwSize;							contains the size of the console screen buffer, in character columns and rows
+	COORD      dwCursorPosition;				contains the column and row coordinates of the cursor in the console screen buffer
+	WORD       wAttributes;						The attributes of the characters written to a screen buffer
+	SMALL_RECT srWindow;						contains the console screen buffer coordinates of the upper-left and lower-right corners of the display window
+	COORD      dwMaximumWindowSize;				contains the maximum size of the console window, in character columns and rows, given the current screen buffer size and font and the screen size.
+} CONSOLE_SCREEN_BUFFER_INFO;
+*/
 
 // Viewport
-void console::setViewportRECT(const SMALL_RECT& viewportRECT) {
-	if (!SetConsoleWindowInfo(_console, true, &viewportRECT)) {
+void console::setViewportRECT(const SMALL_RECT& viewport) {
+	if (!SetConsoleWindowInfo(hConsole, true, &viewport)) {
 		throw std::runtime_error(
 			"Failed to set RECT for console viewport: " +
 			std::to_string(GetLastError())
@@ -38,14 +59,14 @@ void console::setViewportPosition(const short x, const short y) {
 	setViewportRECT(newViewport);
 }
 
-COORD console::getViewportPosition() const {
+COORD console::getViewportPosition() {
 	return {
 	static_cast<short>(_csbi.srWindow.Left),
 	static_cast<short>(_csbi.srWindow.Top),
 	};
 }
 
-COORD console::getViewportSize() const {
+COORD console::getViewportSize() {
 	return {
 	static_cast<short>(_csbi.srWindow.Right - _csbi.srWindow.Left + 1),
 	static_cast<short>(_csbi.srWindow.Bottom - _csbi.srWindow.Top + 1)
@@ -75,7 +96,7 @@ void console::setBufferSize(const short width, const short height) {
 	}
 
 	COORD size = { width, height };
-	if (!SetConsoleScreenBufferSize(_console, size)) {
+	if (!SetConsoleScreenBufferSize(hConsole, size)) {
 		throw std::runtime_error(
 			std::string("Something went wrong during the resizing!\n") +
 			"width: " + std::to_string(width) + '\n' +
@@ -86,7 +107,7 @@ void console::setBufferSize(const short width, const short height) {
 	updateConsoleInfo();
 }
 
-COORD console::getBufferSize() const {
+COORD console::getBufferSize() {
 	return _csbi.dwSize;
 }
 
@@ -116,7 +137,7 @@ void console::printStyleLine(const std::wstring &line, text_color t_col, bg_colo
 		}
 
 		if (!WriteConsoleOutputW(
-			_console,        // 1. Дескриптор консоли
+			hConsole,        // 1. Дескриптор консоли
 			buffer.data(),   // 2. Указатель на наш массив CHAR_INFO (источник)
 			bufferSize,      // 3. Размер источника
 			bufferCoord,     // 4. С какой точки в источнике начинать читать
@@ -151,7 +172,7 @@ void console::printStyleLine(const std::string& line, text_color t_col, bg_color
 	}
 
 	if (!WriteConsoleOutputA(
-		_console,        // 1. Дескриптор консоли
+		hConsole,        // 1. Дескриптор консоли
 		buffer.data(),   // 2. Указатель на наш массив CHAR_INFO (источник)
 		bufferSize,      // 3. Размер источника
 		bufferCoord,     // 4. С какой точки в источнике начинать читать
@@ -181,7 +202,7 @@ void console::setCursorPosition(const short x, const short y) {
 	_cursorPosition.Y = y;
 
 	// Применяем новые координаты WinAPI методом SetConsoleCursorPosition()
-	if (!SetConsoleCursorPosition(_console, _cursorPosition)) {
+	if (!SetConsoleCursorPosition(hConsole, _cursorPosition)) {
 		throw std::runtime_error(
 			std::string("Something went wrong during the operation (SetConsoleCursorPosition)!\n") +
 			"X: " + std::to_string(x) + '\n' +
@@ -196,24 +217,13 @@ void console::moveToNextLine(bool line_begin) {
 	
 	_cursorPosition.Y += 1;
 
-	SetConsoleCursorPosition(_console, _cursorPosition);
+	SetConsoleCursorPosition(hConsole, _cursorPosition);
 }
 
 COORD console::getCursorPosition() {
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
-	if (GetConsoleScreenBufferInfo(_console, &csbi)) {
+	if (GetConsoleScreenBufferInfo(hConsole, &csbi)) {
 		_cursorPosition = csbi.dwCursorPosition;
 	}
 	return _cursorPosition;
 }
-
- // Актуализирует все поля структуры _CONSOLE_SCREEN_BUFFER_INFO:
- // dwSize - размеры буфера,
- // dwCursorPosition - Абсолютные координаты курсора,
- // wAttributes - Аттрибуты применимые к текущему отображению данных в буфере,
- // srWindow - Абсолютные координаты верхнего левого и нижнего прававого углов вьюпорта,
- // dwMaximumWindowSize - максимальное возможное значение размеров вьюпорта на данный момент.
-bool console::updateConsoleInfo() {
-	return GetConsoleScreenBufferInfo(_console, &_csbi);
-}
-
