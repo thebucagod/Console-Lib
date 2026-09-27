@@ -33,6 +33,28 @@ typedef struct _CONSOLE_SCREEN_BUFFER_INFO {
 
 // Viewport
 void console::setViewportRECT(const SMALL_RECT& viewport) {
+	// preliminary validation	
+	if (viewport.Left < 0 || viewport.Top < 0 || 
+		viewport.Right - viewport.Left + 1 < _minSize.X ||
+		viewport.Bottom - viewport.Top + 1 < _minSize.Y) {
+		throw std::invalid_argument(
+			"Invalid viewport RECT: coordinates are out of logical bounds."
+		);
+	}
+
+	// buffer compliance check (an updated CSBI is required)
+	updateConsoleInfo();
+
+	if (viewport.Right >= _csbi.dwSize.X ||
+		viewport.Bottom >= _csbi.dwSize.Y) {
+		throw std::invalid_argument(
+			std::string("Viewport exceeds buffer size.\n") +
+			"Buffer size: " + std::to_string(_csbi.dwSize.X) + "x" + std::to_string(_csbi.dwSize.Y) + "\n" +
+			"Viewport Right/Bottom: " + std::to_string(viewport.Right) + "/" + std::to_string(viewport.Bottom)
+		);
+	}
+
+	// executing a system call
 	if (!SetConsoleWindowInfo(hConsole, true, &viewport)) {
 		throw std::runtime_error(
 			"Failed to set RECT for console viewport: " +
