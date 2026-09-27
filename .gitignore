@@ -437,4 +437,8 @@ FodyWeavers.xsd
 *.vcxproj
 *.vcxproj.filters
 
+# CMake files and "build" dir #
+CMakeLists.txt
+build/
+
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,c++
