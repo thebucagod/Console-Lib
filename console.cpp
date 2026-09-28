@@ -157,6 +157,9 @@ void console::setBufferSize(const short width, const short height) {
 }
 
 COORD console::getBufferSize() {
+	//an updated CSBI is required
+	updateConsoleInfo();
+
 	return _csbi.dwSize;
 }
 
