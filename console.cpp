@@ -76,6 +76,9 @@ void console::setViewportSize(const short width, const short height) {
 }
 
 void console::setViewportPosition(const short x, const short y) {
+	//an updated CSBI is required
+	updateConsoleInfo();
+
 	SMALL_RECT curViewport = _csbi.srWindow;
 	short width = curViewport.Right - curViewport.Left + 1;
 	short height = curViewport.Bottom - curViewport.Top + 1;
