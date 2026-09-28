@@ -111,7 +111,7 @@ COORD console::getViewportSize() {
 // Buffer
 
 void console::setBufferSize(const short width, const short height) {
-	// ѕроверка на выход за границы возможных величин
+	// Check for exceeding the limits of possible values
 	if (width > SHRT_MAX || height > SHRT_MAX) {
 		throw std::overflow_error(
 			std::string("Maximum size error: width or height of buffer is greater than SHRT_MAX.\n") +
@@ -120,7 +120,7 @@ void console::setBufferSize(const short width, const short height) {
 		);
 	}
 
-	// ѕроврка минимальных размеров
+	// Checking the minimum dimensions
 	if (width < _minSize.X || height < _minSize.Y) {
 		throw std::underflow_error(
 			std::string("Minimum size error: width or height of buffer is less than _minSize.\n") +
@@ -129,6 +129,21 @@ void console::setBufferSize(const short width, const short height) {
 		);
 	}
 
+	//an updated CSBI is required
+	updateConsoleInfo();
+
+	// Buffer must be strictly larger than the maximum index of the current viewport
+	if (width <= _csbi.srWindow.Right ||
+		height <= _csbi.srWindow.Bottom)
+	{
+		throw std::invalid_argument(
+			std::string("New buffer size is smaller than the current viewport bounds.\n") +
+			"Buffer size: " + std::to_string(width) + "x" + std::to_string(height) + "\n" +
+			"Viewport Right/Bottom: " + std::to_string(_csbi.srWindow.Right) + "/" + std::to_string(_csbi.srWindow.Bottom)
+		);
+	}
+
+	// executing a system call
 	COORD size = { width, height };
 	if (!SetConsoleScreenBufferSize(hConsole, size)) {
 		throw std::runtime_error(
