@@ -88,6 +88,9 @@ void console::setViewportPosition(const short x, const short y) {
 }
 
 COORD console::getViewportPosition() {
+	//an updated CSBI is required
+	updateConsoleInfo();
+
 	return {
 	static_cast<short>(_csbi.srWindow.Left),
 	static_cast<short>(_csbi.srWindow.Top),
@@ -95,6 +98,9 @@ COORD console::getViewportPosition() {
 }
 
 COORD console::getViewportSize() {
+	//an updated CSBI is required
+	updateConsoleInfo();
+
 	return {
 	static_cast<short>(_csbi.srWindow.Right - _csbi.srWindow.Left + 1),
 	static_cast<short>(_csbi.srWindow.Bottom - _csbi.srWindow.Top + 1)
