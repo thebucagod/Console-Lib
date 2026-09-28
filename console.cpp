@@ -8,7 +8,6 @@ namespace {
 	CONSOLE_SCREEN_BUFFER_INFO _csbi;
 
 	COORD _minSize = { 50, 1 };
-	COORD _cursorPosition = { 0, 0 };
 
 	// Актуализирует все поля структуры _CONSOLE_SCREEN_BUFFER_INFO:
 	// dwSize - размеры буфера,
@@ -236,10 +235,10 @@ void console::printStyleLine(const std::string& line, text_color t_col, bg_color
 	}
 }
 
-// Работа с курсором консоли
+// Cursor
 
 void console::setCursorPosition(const short x, const short y) {
-	// Проверка на минимальные и максимальные размеры.
+	// Checking for minimum and maximum dimensions.
 	if (x < 0 || y < 0 || x > SHRT_MAX || y > SHRT_MAX) {
 		throw std::out_of_range(
 			std::string("Cursor position is out of valid SHORT range!\n") +
@@ -248,13 +247,27 @@ void console::setCursorPosition(const short x, const short y) {
 		);
 	}	
 
-	// Номер столбца
-	_cursorPosition.X = x;
-	// Номер строки
-	_cursorPosition.Y = y;
+	// an updated CSBI is required
+	updateConsoleInfo();
 
-	// Применяем новые координаты WinAPI методом SetConsoleCursorPosition()
-	if (!SetConsoleCursorPosition(hConsole, _cursorPosition)) {
+	// Check: the coordinate must be strictly less than the buffer size.
+	if (x >= _csbi.dwSize.X ||
+		y >= _csbi.dwSize.Y)
+	{
+		throw std::out_of_range(
+			std::string("Cursor position is out of valid buffer range!\n") +
+			"Requested X/Y: " + std::to_string(x) + "/" + std::to_string(y) + '\n' +
+			"Buffer size (X/Y): " + std::to_string(_csbi.dwSize.X) + "/" + std::to_string(_csbi.dwSize.Y) + '\n'
+		);
+	}
+
+	// Column number
+	_csbi.dwCursorPosition.X = x;
+	// Line number
+	_csbi.dwCursorPosition.Y = y;
+
+	// We apply the new WinAPI coordinates
+	if (!SetConsoleCursorPosition(hConsole, _csbi.dwCursorPosition)) {
 		throw std::runtime_error(
 			std::string("Something went wrong during the operation (SetConsoleCursorPosition)!\n") +
 			"X: " + std::to_string(x) + '\n' +
