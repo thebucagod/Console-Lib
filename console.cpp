@@ -286,9 +286,8 @@ void console::moveToNextLine(bool line_begin) {
 }
 
 COORD console::getCursorPosition() {
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
-	if (GetConsoleScreenBufferInfo(hConsole, &csbi)) {
-		_cursorPosition = csbi.dwCursorPosition;
-	}
-	return _cursorPosition;
+	//an updated CSBI is required
+	updateConsoleInfo();
+
+	return _csbi.dwCursorPosition;
 }
