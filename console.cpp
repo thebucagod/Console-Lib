@@ -1,4 +1,4 @@
-#include "console.h"
+п»ї#include "console.h"
 
 #include <stdexcept>
 
@@ -9,12 +9,12 @@ namespace {
 
 	COORD _minSize = { 50, 1 };
 
-	// Актуализирует все поля структуры _CONSOLE_SCREEN_BUFFER_INFO:
-	// dwSize - размеры буфера,
-	// dwCursorPosition - Абсолютные координаты курсора,
-	// wAttributes - Аттрибуты применимые к текущему отображению данных в буфере,
-	// srWindow - Абсолютные координаты верхнего левого и нижнего прававого углов вьюпорта,
-	// dwMaximumWindowSize - максимальное возможное значение размеров вьюпорта на данный момент.
+	// РђРєС‚СѓР°Р»РёР·РёСЂСѓРµС‚ РІСЃРµ РїРѕР»СЏ СЃС‚СЂСѓРєС‚СѓСЂС‹ _CONSOLE_SCREEN_BUFFER_INFO:
+	// dwSize - СЂР°Р·РјРµСЂС‹ Р±СѓС„РµСЂР°,
+	// dwCursorPosition - РђР±СЃРѕР»СЋС‚РЅС‹Рµ РєРѕРѕСЂРґРёРЅР°С‚С‹ РєСѓСЂСЃРѕСЂР°,
+	// wAttributes - РђС‚С‚СЂРёР±СѓС‚С‹ РїСЂРёРјРµРЅРёРјС‹Рµ Рє С‚РµРєСѓС‰РµРјСѓ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЋ РґР°РЅРЅС‹С… РІ Р±СѓС„РµСЂРµ,
+	// srWindow - РђР±СЃРѕР»СЋС‚РЅС‹Рµ РєРѕРѕСЂРґРёРЅР°С‚С‹ РІРµСЂС…РЅРµРіРѕ Р»РµРІРѕРіРѕ Рё РЅРёР¶РЅРµРіРѕ РїСЂР°РІР°РІРѕРіРѕ СѓРіР»РѕРІ РІСЊСЋРїРѕСЂС‚Р°,
+	// dwMaximumWindowSize - РјР°РєСЃРёРјР°Р»СЊРЅРѕРµ РІРѕР·РјРѕР¶РЅРѕРµ Р·РЅР°С‡РµРЅРёРµ СЂР°Р·РјРµСЂРѕРІ РІСЊСЋРїРѕСЂС‚Р° РЅР° РґР°РЅРЅС‹Р№ РјРѕРјРµРЅС‚.
 	bool updateConsoleInfo() {
 		return GetConsoleScreenBufferInfo(hConsole, &_csbi);
 	}
@@ -163,18 +163,18 @@ COORD console::getBufferSize() {
 }
 
 
-/* ===== СТИЛИЗАЦИЯ СТРОК ===== */
+/* ===== РЎРўРР›РР—РђР¦РРЇ РЎРўР РћРљ ===== */
 
-// Метод для работы с Unicode строками
+// РњРµС‚РѕРґ РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ Unicode СЃС‚СЂРѕРєР°РјРё
 void console::printStyleLine(const std::wstring &line, text_color t_col, bg_color b_col) {
 		const short width = static_cast<short>(line.size());
 		const short height = 1;
 
 		COORD bufferSize = { width, height };
-		COORD bufferCoord = { 0, 0 };	// Координаты внутри источника, с которых начинается чтение
+		COORD bufferCoord = { 0, 0 };	// РљРѕРѕСЂРґРёРЅР°С‚С‹ РІРЅСѓС‚СЂРё РёСЃС‚РѕС‡РЅРёРєР°, СЃ РєРѕС‚РѕСЂС‹С… РЅР°С‡РёРЅР°РµС‚СЃСЏ С‡С‚РµРЅРёРµ
 		SMALL_RECT writeRegion = { _cursorPosition.X, _cursorPosition.Y, _cursorPosition.X + width - 1, _cursorPosition.Y + height - 1 };
 
-		// Массив символов в структуре CHAR_INFO
+		// РњР°СЃСЃРёРІ СЃРёРјРІРѕР»РѕРІ РІ СЃС‚СЂСѓРєС‚СѓСЂРµ CHAR_INFO
 		std::vector<CHAR_INFO> buffer(line.size());
 
 		WORD text_style = static_cast<WORD>(t_col);
@@ -188,11 +188,11 @@ void console::printStyleLine(const std::wstring &line, text_color t_col, bg_colo
 		}
 
 		if (!WriteConsoleOutputW(
-			hConsole,        // 1. Дескриптор консоли
-			buffer.data(),   // 2. Указатель на наш массив CHAR_INFO (источник)
-			bufferSize,      // 3. Размер источника
-			bufferCoord,     // 4. С какой точки в источнике начинать читать
-			&writeRegion     // 5. Указатель на прямоугольник на экране (приемник)
+			hConsole,        // 1. Р”РµСЃРєСЂРёРїС‚РѕСЂ РєРѕРЅСЃРѕР»Рё
+			buffer.data(),   // 2. РЈРєР°Р·Р°С‚РµР»СЊ РЅР° РЅР°С€ РјР°СЃСЃРёРІ CHAR_INFO (РёСЃС‚РѕС‡РЅРёРє)
+			bufferSize,      // 3. Р Р°Р·РјРµСЂ РёСЃС‚РѕС‡РЅРёРєР°
+			bufferCoord,     // 4. РЎ РєР°РєРѕР№ С‚РѕС‡РєРё РІ РёСЃС‚РѕС‡РЅРёРєРµ РЅР°С‡РёРЅР°С‚СЊ С‡РёС‚Р°С‚СЊ
+			&writeRegion     // 5. РЈРєР°Р·Р°С‚РµР»СЊ РЅР° РїСЂСЏРјРѕСѓРіРѕР»СЊРЅРёРє РЅР° СЌРєСЂР°РЅРµ (РїСЂРёРµРјРЅРёРє)
 		)) {
 			throw std::runtime_error(
 				std::string("Something went wrong during the operation (WriteConsoleOutputW())!\n")
@@ -200,16 +200,16 @@ void console::printStyleLine(const std::wstring &line, text_color t_col, bg_colo
 		}
 	}
 
-// Метод для работы с ANSI строками
+// РњРµС‚РѕРґ РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ ANSI СЃС‚СЂРѕРєР°РјРё
 void console::printStyleLine(const std::string& line, text_color t_col, bg_color b_col) {
 	const short width = static_cast<short>(line.size());
 	const short height = 1;
 
 	COORD bufferSize = { width, height };
-	COORD bufferCoord = { 0, 0 };	// Координаты внутри источника, с которых начинается чтение
+	COORD bufferCoord = { 0, 0 };	// РљРѕРѕСЂРґРёРЅР°С‚С‹ РІРЅСѓС‚СЂРё РёСЃС‚РѕС‡РЅРёРєР°, СЃ РєРѕС‚РѕСЂС‹С… РЅР°С‡РёРЅР°РµС‚СЃСЏ С‡С‚РµРЅРёРµ
 	SMALL_RECT writeRegion = { _cursorPosition.X, _cursorPosition.Y, _cursorPosition.X + width - 1, _cursorPosition.Y + height - 1 };
 
-	// Массив символов в структуре CHAR_INFO
+	// РњР°СЃСЃРёРІ СЃРёРјРІРѕР»РѕРІ РІ СЃС‚СЂСѓРєС‚СѓСЂРµ CHAR_INFO
 	std::vector<CHAR_INFO> buffer(line.size());
 
 	WORD text_style = static_cast<WORD>(t_col);
@@ -223,11 +223,11 @@ void console::printStyleLine(const std::string& line, text_color t_col, bg_color
 	}
 
 	if (!WriteConsoleOutputA(
-		hConsole,        // 1. Дескриптор консоли
-		buffer.data(),   // 2. Указатель на наш массив CHAR_INFO (источник)
-		bufferSize,      // 3. Размер источника
-		bufferCoord,     // 4. С какой точки в источнике начинать читать
-		&writeRegion     // 5. Указатель на прямоугольник на экране (приемник)
+		hConsole,        // 1. Р”РµСЃРєСЂРёРїС‚РѕСЂ РєРѕРЅСЃРѕР»Рё
+		buffer.data(),   // 2. РЈРєР°Р·Р°С‚РµР»СЊ РЅР° РЅР°С€ РјР°СЃСЃРёРІ CHAR_INFO (РёСЃС‚РѕС‡РЅРёРє)
+		bufferSize,      // 3. Р Р°Р·РјРµСЂ РёСЃС‚РѕС‡РЅРёРєР°
+		bufferCoord,     // 4. РЎ РєР°РєРѕР№ С‚РѕС‡РєРё РІ РёСЃС‚РѕС‡РЅРёРєРµ РЅР°С‡РёРЅР°С‚СЊ С‡РёС‚Р°С‚СЊ
+		&writeRegion     // 5. РЈРєР°Р·Р°С‚РµР»СЊ РЅР° РїСЂСЏРјРѕСѓРіРѕР»СЊРЅРёРє РЅР° СЌРєСЂР°РЅРµ (РїСЂРёРµРјРЅРёРє)
 	)) {
 		throw std::runtime_error(
 			std::string("Something went wrong during the operation (WriteConsoleOutputW())!\n")
@@ -277,12 +277,30 @@ void console::setCursorPosition(const short x, const short y) {
 }
 
 void console::moveToNextLine(bool line_begin) {
-	if (line_begin)
-		_cursorPosition.X = 0;
-	
-	_cursorPosition.Y += 1;
+	//an updated CSBI is required
+	updateConsoleInfo();
 
-	SetConsoleCursorPosition(hConsole, _cursorPosition);
+	if (line_begin)
+		_csbi.dwCursorPosition.X = 0;
+	
+	_csbi.dwCursorPosition.Y += 1;
+
+	// Check for cursor YвЂ‘coordinate going beyond the current buffer
+	if (_csbi.dwCursorPosition.Y >= _csbi.dwSize.Y) {
+		throw std::out_of_range(
+			std::string("Cannot move to next line: cursor would exceed buffer height.\n") +
+			"Current Y after increment: " + std::to_string(_csbi.dwCursorPosition.Y) + '\n' +
+			"Buffer height: " + std::to_string(_csbi.dwSize.Y) + '\n'
+		);
+	}
+
+	if (!SetConsoleCursorPosition(hConsole, _csbi.dwCursorPosition)) {
+		throw std::runtime_error(
+			std::string("Something went wrong during the operation (SetConsoleCursorPosition)!\n") +
+			"X: " + std::to_string(_csbi.dwCursorPosition.X) + '\n' +
+			"Y: " + std::to_string(_csbi.dwCursorPosition.Y) + '\n'
+		);
+	}
 }
 
 COORD console::getCursorPosition() {
