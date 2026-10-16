@@ -96,6 +96,8 @@ namespace console {
 
 	/// @brief Sets the cursor to the specified position.
 	/// @note Cursor positioning is performed via the WinAPI SetConsoleCursorPosition() method.
+	/// @param x The horizontal coordinate (column number), starting from 0.
+	/// @param y The vertical coordinate (row number), starting from 0.
 	/// @throws std::out_of_range If the provided X or Y is greater than SHRT_MAX or less than 0.
 	/// @throws std::runtime_error If the SetConsoleCursorPosition() system call fails.
 	void setCursorPosition(const short x, const short y);
