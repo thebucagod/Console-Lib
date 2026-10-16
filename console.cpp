@@ -172,7 +172,7 @@ void console::printStyleLine(const std::wstring &line, text_color t_col, bg_colo
 
 		COORD bufferSize = { width, height };
 		COORD bufferCoord = { 0, 0 };	// Координаты внутри источника, с которых начинается чтение
-		SMALL_RECT writeRegion = { _cursorPosition.X, _cursorPosition.Y, _cursorPosition.X + width - 1, _cursorPosition.Y + height - 1 };
+		SMALL_RECT writeRegion = { _csbi.dwCursorPosition.X, _csbi.dwCursorPosition.Y, _csbi.dwCursorPosition.X + width - 1, _csbi.dwCursorPosition.Y + height - 1 };
 
 		// Массив символов в структуре CHAR_INFO
 		std::vector<CHAR_INFO> buffer(line.size());
@@ -207,7 +207,7 @@ void console::printStyleLine(const std::string& line, text_color t_col, bg_color
 
 	COORD bufferSize = { width, height };
 	COORD bufferCoord = { 0, 0 };	// Координаты внутри источника, с которых начинается чтение
-	SMALL_RECT writeRegion = { _cursorPosition.X, _cursorPosition.Y, _cursorPosition.X + width - 1, _cursorPosition.Y + height - 1 };
+	SMALL_RECT writeRegion = { _csbi.dwCursorPosition.X, _csbi.dwCursorPosition.Y, _csbi.dwCursorPosition.X + width - 1, _csbi.dwCursorPosition.Y + height - 1 };
 
 	// Массив символов в структуре CHAR_INFO
 	std::vector<CHAR_INFO> buffer(line.size());
