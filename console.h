@@ -104,6 +104,8 @@ namespace console {
 	/// @note Cursor positioning is performed via the WinAPI SetConsoleCursorPosition() method.
 	/// @param line_begin 0 - if the cursor should remain in the same column,
 	///                   1 - if the cursor should move to the beginning of the line (column 0).
+	/// @throws std::out_of_range If the cursor Y‑coordinate going beyond the current buffer.
+	/// @throws std::runtime_error If the SetConsoleCursorPosition() system call fails.
 	void moveToNextLine(bool line_begin = 0);
 
 	/// @brief Returns the COORD of the current cursor position in character columns and rows (starting from 0).
