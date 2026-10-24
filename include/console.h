@@ -78,7 +78,7 @@ namespace console {
 	/// @param t_col The text color (default: text_color::White).
 	/// @param b_col The background color (default: bg_color::Black).
 	/// @note Internally uses the WinAPI WriteConsoleOutputW method.
-	void printStyleLine(const std::wstring& line, text_color t_col = text_color::White, bg_color b_col = bg_color::Black);
+	void printStyle(const std::wstring& line, text_color t_col = text_color::White, bg_color b_col = bg_color::Black);
 
 	/// @brief Outputs an ANSI string at the current cursor position with specified colors.
 	/// @details Provides maximum performance due to ANSI encoding and the absence of conversion.
@@ -90,7 +90,7 @@ namespace console {
 	/// will guaranteedly result in unreadable characters on computers 
 	/// with non-Russian Windows language settings.
 	/// @note Internally uses the WinAPI WriteConsoleOutputA method.
-	void printStyleLine(const std::string& line, text_color t_col = text_color::White, bg_color b_col = bg_color::Black);
+	void printStyle(const std::string& line, text_color t_col = text_color::White, bg_color b_col = bg_color::Black);
 
 	// Console cursor operations
 
