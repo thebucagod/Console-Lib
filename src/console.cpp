@@ -2,7 +2,8 @@
 
 #include <stdexcept>
 
-namespace {
+namespace
+{
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	CONSOLE_SCREEN_BUFFER_INFO _csbi;
@@ -31,9 +32,9 @@ typedef struct _CONSOLE_SCREEN_BUFFER_INFO {
 */
 
 // Viewport
-void console::setViewportRECT(const SMALL_RECT& viewport) {
+void console::setViewportRECT(const SMALL_RECT &viewport) {
 	// preliminary validation	
-	if (viewport.Left < 0 || viewport.Top < 0 || 
+	if (viewport.Left < 0 || viewport.Top < 0 ||
 		viewport.Right - viewport.Left + 1 < _minSize.X ||
 		viewport.Bottom - viewport.Top + 1 < _minSize.Y) {
 		throw std::invalid_argument(
@@ -82,7 +83,7 @@ void console::setViewportPosition(const short x, const short y) {
 	short width = curViewport.Right - curViewport.Left + 1;
 	short height = curViewport.Bottom - curViewport.Top + 1;
 
-	SMALL_RECT newViewport = {x, y, x + width - 1, y + height - 1};
+	SMALL_RECT newViewport = { x, y, x + width - 1, y + height - 1 };
 	setViewportRECT(newViewport);
 }
 
@@ -133,8 +134,7 @@ void console::setBufferSize(const short width, const short height) {
 
 	// Buffer must be strictly larger than the maximum index of the current viewport
 	if (width <= _csbi.srWindow.Right ||
-		height <= _csbi.srWindow.Bottom)
-	{
+		height <= _csbi.srWindow.Bottom) {
 		throw std::invalid_argument(
 			std::string("New buffer size is smaller than the current viewport bounds.\n") +
 			"Buffer size: " + std::to_string(width) + "x" + std::to_string(height) + "\n" +
@@ -233,7 +233,7 @@ void console::printStyle(const std::string &line, text_color t_col, bg_color b_c
 	WORD bg_style = static_cast<WORD>(b_col);
 
 	for (short x = 0; x < width; x++) {
-		CHAR_INFO& ci = buffer[x];
+		CHAR_INFO &ci = buffer[x];
 
 		ci.Char.AsciiChar = line[x];
 		ci.Attributes = text_style | bg_style;
@@ -269,15 +269,14 @@ void console::setCursorPosition(const short x, const short y) {
 			"X: " + std::to_string(x) + '\n' +
 			"Y: " + std::to_string(y) + '\n'
 		);
-	}	
+	}
 
 	// an updated CSBI is required
 	updateConsoleInfo();
 
 	// Check: the coordinate must be strictly less than the buffer size.
 	if (x >= _csbi.dwSize.X ||
-		y >= _csbi.dwSize.Y)
-	{
+		y >= _csbi.dwSize.Y) {
 		throw std::out_of_range(
 			std::string("Cursor position is out of valid buffer range!\n") +
 			"Requested X/Y: " + std::to_string(x) + "/" + std::to_string(y) + '\n' +
@@ -306,7 +305,7 @@ void console::moveToNextLine(bool line_begin) {
 
 	if (line_begin)
 		_csbi.dwCursorPosition.X = 0;
-	
+
 	_csbi.dwCursorPosition.Y += 1;
 
 	// Check for cursor Y‑coordinate going beyond the current buffer
