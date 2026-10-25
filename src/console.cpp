@@ -31,6 +31,49 @@ namespace
 
 		return wstr;
 	}
+
+	// Выводит wide-строку в позицию курсора. Если строка не помещается до правого края буфера,
+	// лишняя часть отбрасывается. После вывода курсор стоит сразу за последним
+	// выведенным символом, но не дальше последнего столбца буфера.
+	void writeClamped(const std::wstring &wline, WORD attributes) {
+		if (!updateConsoleInfo()) {
+			throw std::runtime_error(
+				"GetConsoleScreenBufferInfo failed: " + std::to_string(GetLastError())
+			);
+		}
+
+		const SHORT startX = _csbi.dwCursorPosition.X;
+		const SHORT startY = _csbi.dwCursorPosition.Y;
+		const SHORT lastCol = static_cast<SHORT>(_csbi.dwSize.X - 1);
+
+		const size_t available = static_cast<size_t>(_csbi.dwSize.X - startX);
+
+		const SHORT count = static_cast<SHORT>((std::min)(wline.size(), available));
+
+		std::vector<CHAR_INFO> buffer(count);
+		for (SHORT i = 0; i < count; ++i) {
+			buffer[i].Char.UnicodeChar = wline[i];
+			buffer[i].Attributes = attributes;
+		}
+
+		COORD bufferSize = { count, 1 };
+		COORD bufferCoord = { 0, 0 };
+		SMALL_RECT writeRegion = {
+			startX,
+			startY,
+			static_cast<SHORT>(startX + count - 1),
+			startY
+		};
+
+		if (!WriteConsoleOutputW(hConsole, buffer.data(), bufferSize, bufferCoord, &writeRegion)) {
+			throw std::runtime_error(
+				"WriteConsoleOutputW failed: " + std::to_string(GetLastError())
+			);
+		}
+
+		const int newX = (std::min)(static_cast<int>(startX) + count, static_cast<int>(lastCol));
+		console::setCursorPosition(static_cast<short>(newX), startY);
+	}
 }
 
 /*												22 byte
@@ -178,52 +221,13 @@ COORD console::getBufferSize() {
 /* ===== СТИЛИЗАЦИЯ СТРОК ===== */
 
 // Метод для работы с ANSI/Unicode строками
-void console::printStyle(const std::string &line, text_color t_col, bg_color b_col) {
-	//an updated CSBI is required
-	updateConsoleInfo();
-
+void console::printStyle(const std::string& line, text_color t_col, bg_color b_col) {
 	if (line.empty()) { return; }
 
-	std::wstring wline = stringToWString(line);
-
-	const short width = static_cast<short>(wline.size());
-	const short height = 1;
-
-	COORD bufferSize = { width, height };
-	COORD bufferCoord = { 0, 0 };	// Координаты внутри источника, с которых начинается чтение
-	SMALL_RECT writeRegion = { _csbi.dwCursorPosition.X, _csbi.dwCursorPosition.Y, _csbi.dwCursorPosition.X + width - 1, _csbi.dwCursorPosition.Y + height - 1 };
-
-	// Массив символов в структуре CHAR_INFO
-	std::vector<CHAR_INFO> buffer(wline.size());
-
-	WORD text_style = static_cast<WORD>(t_col);
-	WORD bg_style = static_cast<WORD>(b_col);
-
-	for (short x = 0; x < width; x++) {
-		CHAR_INFO &ci = buffer[x];
-
-		ci.Char.UnicodeChar = wline[x];
-		ci.Attributes = text_style | bg_style;
-	}
-
-	if (!WriteConsoleOutputW(
-		hConsole,        // 1. Дескриптор консоли
-		buffer.data(),   // 2. Указатель на наш массив CHAR_INFO (источник)
-		bufferSize,      // 3. Размер источника
-		bufferCoord,     // 4. С какой точки в источнике начинать читать
-		&writeRegion     // 5. Указатель на прямоугольник на экране (приемник)
-	)) {
-		throw std::runtime_error(
-			"WriteConsoleOutputW failed: " + std::to_string(GetLastError()) + "\n"
-		);
-	}
-	else {
-		setCursorPosition
-		(
-			_csbi.dwCursorPosition.X + width,
-			_csbi.dwCursorPosition.Y
-		);
-	}
+	writeClamped(
+		stringToWString(line),
+		static_cast<WORD>(static_cast<WORD>(t_col) | static_cast<WORD>(b_col))
+	);
 }
 
 void console::printStyleLine(const std::string &line, text_color t_col, bg_color b_col, bool line_begin) {
