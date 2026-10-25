@@ -67,7 +67,7 @@ void console::setViewportRECT(const SMALL_RECT &viewport) {
 	}
 
 	// executing a system call
-	if (!SetConsoleWindowInfo(hConsole, true, &viewport)) {
+	if (!SetConsoleWindowInfo(hConsole, TRUE, &viewport)) {
 		throw std::runtime_error(
 			"Failed to set RECT for console viewport: " +
 			std::to_string(GetLastError())
@@ -234,15 +234,6 @@ void console::printStyleLine(const std::string &line, text_color t_col = text_co
 // Cursor
 
 void console::setCursorPosition(const short x, const short y) {
-	// Checking for minimum and maximum dimensions.
-	if (x < 0 || y < 0 || x > SHRT_MAX || y > SHRT_MAX) {
-		throw std::out_of_range(
-			std::string("Cursor position is out of valid SHORT range!\n") +
-			"X: " + std::to_string(x) + '\n' +
-			"Y: " + std::to_string(y) + '\n'
-		);
-	}
-
 	// an updated CSBI is required
 	updateConsoleInfo();
 
