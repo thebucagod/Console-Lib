@@ -19,6 +19,18 @@ namespace
 	bool updateConsoleInfo() {
 		return GetConsoleScreenBufferInfo(hConsole, &_csbi);
 	}
+
+	std::wstring stringToWString(const std::string &str) {
+		if (str.empty()) return L"";
+
+		int size = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), static_cast<int>(str.size()), nullptr, 0);
+		if (size == 0) throw std::runtime_error("MultiByteToWideChar failed");
+
+		std::wstring wstr(size, 0);
+		MultiByteToWideChar(CP_UTF8, 0, str.c_str(), static_cast<int>(str.size()), &wstr[0], size);
+
+		return wstr;
+	}
 }
 
 /*												22 byte
@@ -165,14 +177,16 @@ COORD console::getBufferSize() {
 
 /* ===== СТИЛИЗАЦИЯ СТРОК ===== */
 
-// Метод для работы с Unicode строками
-void console::printStyle(const std::wstring &line, text_color t_col, bg_color b_col) {
+// Метод для работы с ANSI/Unicode строками
+void console::printStyle(const std::string &line, text_color t_col, bg_color b_col) {
 	//an updated CSBI is required
 	updateConsoleInfo();
 
 	if (line.empty()) { return; }
 
-	const short width = static_cast<short>(line.size());
+	std::wstring wline = stringToWString(line);
+
+	const short width = static_cast<short>(wline.size());
 	const short height = 1;
 
 	COORD bufferSize = { width, height };
@@ -180,7 +194,7 @@ void console::printStyle(const std::wstring &line, text_color t_col, bg_color b_
 	SMALL_RECT writeRegion = { _csbi.dwCursorPosition.X, _csbi.dwCursorPosition.Y, _csbi.dwCursorPosition.X + width - 1, _csbi.dwCursorPosition.Y + height - 1 };
 
 	// Массив символов в структуре CHAR_INFO
-	std::vector<CHAR_INFO> buffer(line.size());
+	std::vector<CHAR_INFO> buffer(wline.size());
 
 	WORD text_style = static_cast<WORD>(t_col);
 	WORD bg_style = static_cast<WORD>(b_col);
@@ -188,7 +202,7 @@ void console::printStyle(const std::wstring &line, text_color t_col, bg_color b_
 	for (short x = 0; x < width; x++) {
 		CHAR_INFO &ci = buffer[x];
 
-		ci.Char.UnicodeChar = line[x];
+		ci.Char.UnicodeChar = wline[x];
 		ci.Attributes = text_style | bg_style;
 	}
 
@@ -201,53 +215,6 @@ void console::printStyle(const std::wstring &line, text_color t_col, bg_color b_
 	)) {
 		throw std::runtime_error(
 			std::string("Something went wrong during the operation (WriteConsoleOutputW())!\n")
-		);
-	}
-	else {
-		setCursorPosition
-		(
-			_csbi.dwCursorPosition.X + width,
-			_csbi.dwCursorPosition.Y
-		);
-	}
-}
-
-// Метод для работы с ANSI строками
-void console::printStyle(const std::string &line, text_color t_col, bg_color b_col) {
-	//an updated CSBI is required
-	updateConsoleInfo();
-
-	if (line.empty()) { return; }
-
-	const short width = static_cast<short>(line.size());
-	const short height = 1;
-
-	COORD bufferSize = { width, height };
-	COORD bufferCoord = { 0, 0 };	// Координаты внутри источника, с которых начинается чтение
-	SMALL_RECT writeRegion = { _csbi.dwCursorPosition.X, _csbi.dwCursorPosition.Y, _csbi.dwCursorPosition.X + width - 1, _csbi.dwCursorPosition.Y + height - 1 };
-
-	// Массив символов в структуре CHAR_INFO
-	std::vector<CHAR_INFO> buffer(line.size());
-
-	WORD text_style = static_cast<WORD>(t_col);
-	WORD bg_style = static_cast<WORD>(b_col);
-
-	for (short x = 0; x < width; x++) {
-		CHAR_INFO &ci = buffer[x];
-
-		ci.Char.AsciiChar = line[x];
-		ci.Attributes = text_style | bg_style;
-	}
-
-	if (!WriteConsoleOutputA(
-		hConsole,        // 1. Дескриптор консоли
-		buffer.data(),   // 2. Указатель на наш массив CHAR_INFO (источник)
-		bufferSize,      // 3. Размер источника
-		bufferCoord,     // 4. С какой точки в источнике начинать читать
-		&writeRegion     // 5. Указатель на прямоугольник на экране (приемник)
-	)) {
-		throw std::runtime_error(
-			std::string("Something went wrong during the operation (WriteConsoleOutputA())!\n")
 		);
 	}
 	else {

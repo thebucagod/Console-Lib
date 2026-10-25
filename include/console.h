@@ -70,26 +70,12 @@ namespace console {
 
 	// Line styling
 
-	/// @brief Outputs a Unicode string at the current cursor position with specified colors.
-	/// @details This is the recommended method for text output. It guarantees correct
-	/// rendering of Cyrillic, box-drawing characters, and special symbols regardless of
-	/// the user's operating system language settings.
-	/// @param line The wide string (std::wstring) to be written to the console.
-	/// @param t_col The text color (default: text_color::White).
-	/// @param b_col The background color (default: bg_color::Black).
-	/// @note Internally uses the WinAPI WriteConsoleOutputW method.
-	void printStyle(const std::wstring& line, text_color t_col = text_color::White, bg_color b_col = bg_color::Black);
-
-	/// @brief Outputs an ANSI string at the current cursor position with specified colors.
-	/// @details Provides maximum performance due to ANSI encoding and the absence of conversion.
+	/// @brief Outputs an Unicode string at the current cursor position with specified colors.
+	/// @details Converts an ANSI string to Unicode using MultiByteToWideChar.
 	/// @param line The narrow string (std::string) to be written to the console.
 	/// @param t_col The text color (default: text_color::White).
 	/// @param b_col The background color (default: bg_color::Black).
-	/// @warning Use this method **only for Latin characters and basic ASCII symbols**. 
-	/// Outputting Cyrillic via this method depends on the system code page (CP_ACP) and 
-	/// will guaranteedly result in unreadable characters on computers 
-	/// with non-Russian Windows language settings.
-	/// @note Internally uses the WinAPI WriteConsoleOutputA method.
+	/// @note Internally uses the WinAPI WriteConsoleOutputW method.
 	void printStyle(const std::string& line, text_color t_col = text_color::White, bg_color b_col = bg_color::Black);
 
 	// Console cursor operations
