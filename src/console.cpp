@@ -226,7 +226,7 @@ void console::printStyle(const std::string &line, text_color t_col, bg_color b_c
 	}
 }
 
-void console::printStyleLine(const std::string &line, text_color t_col = text_color::White, bg_color b_col = bg_color::Black, bool line_begin) {
+void console::printStyleLine(const std::string &line, text_color t_col, bg_color b_col, bool line_begin) {
 	printStyle(line, t_col, b_col);
 	moveToNextLine(line_begin);
 }
