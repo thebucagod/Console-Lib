@@ -78,6 +78,9 @@ namespace console {
 	/// @note Internally uses the WinAPI WriteConsoleOutputW method.
 	void printStyle(const std::string& line, text_color t_col = text_color::White, bg_color b_col = bg_color::Black);
 
+	/// @brief First, it calls the "printStyle" method, and then the "moveToNextLine" method.
+	void printStyleLine(const std::string &line, text_color t_col = text_color::White, bg_color b_col = bg_color::Black, bool line_begin = TRUE);
+
 	// Console cursor operations
 
 	/// @brief Sets the cursor to the specified position.
