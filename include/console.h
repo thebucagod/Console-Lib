@@ -37,12 +37,12 @@ namespace console {
 	/// @brief Returns the top-left corner coordinates of the viewport.
 	/// @return a COORD structure where the X field contains the horizontal position,
 	///			and the Y field contains the vertical position
-	/// (relative to the console buffre origin)
+	/// (relative to the console buffer origin)
 	COORD getViewportPosition();
 
 	/// @brief Returns the currents dimensions of the current viewport.
-	/// @return A COORD structure whree the X fields contains the width,
-	///			and the Y field contains the height og the area in characters.
+	/// @return A COORD structure where the X fields contains the width,
+	///			and the Y field contains the height of the area in characters.
 	/// @note the values are derived from the cached state (_csbi).
 	/// @warning If the user manually resizes the viewport,
 	/// the data may become inaccurate.
@@ -71,14 +71,19 @@ namespace console {
 	// Line styling
 
 	/// @brief Outputs an Unicode string at the current cursor position with specified colors.
-	/// @details Converts an ANSI string to Unicode using MultiByteToWideChar.
+	/// @details Converts an UTF-8 string to Unicode using MultiByteToWideChar.
 	/// @param line The narrow string (std::string) to be written to the console.
 	/// @param t_col The text color (default: text_color::White).
 	/// @param b_col The background color (default: bg_color::Black).
 	/// @note Internally uses the WinAPI WriteConsoleOutputW method.
+	/// @warning The line will be truncated if it does not fit into the buffer. 
 	void printStyle(const std::string& line, text_color t_col = text_color::White, bg_color b_col = bg_color::Black);
 
 	/// @brief First, it calls the "printStyle" method, and then the "moveToNextLine" method.
+	/// @note moveToNextLine can throw an exception after text output. 
+	/// @param line The narrow string (std::string) to be written to the console.
+	/// @param t_col The text color (default: text_color::White).
+	/// @param b_col The background color (default: bg_color::Black).
 	void printStyleLine(const std::string &line, text_color t_col = text_color::White, bg_color b_col = bg_color::Black, bool line_begin = TRUE);
 
 	// Console cursor operations
@@ -97,7 +102,7 @@ namespace console {
 	///                   1 - if the cursor should move to the beginning of the line (column 0).
 	/// @throws std::out_of_range If the cursor Y‑coordinate going beyond the current buffer.
 	/// @throws std::runtime_error If the SetConsoleCursorPosition() system call fails.
-	void moveToNextLine(bool line_begin = 0);
+	void moveToNextLine(bool line_begin = FALSE);
 
 	/// @brief Returns the COORD of the current cursor position in character columns and rows (starting from 0).
 	/// @return A COORD structure where the X field contains the current column,

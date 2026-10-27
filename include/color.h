@@ -1,4 +1,5 @@
 #pragma once
+#include <windows.h>
 
 enum class text_color: WORD {
     Black = 0,

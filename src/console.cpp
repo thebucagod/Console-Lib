@@ -10,12 +10,13 @@ namespace
 
 	COORD _minSize = { 50, 1 };
 
-	// Актуализирует все поля структуры _CONSOLE_SCREEN_BUFFER_INFO:
-	// dwSize - размеры буфера,
-	// dwCursorPosition - Абсолютные координаты курсора,
-	// wAttributes - Аттрибуты применимые к текущему отображению данных в буфере,
-	// srWindow - Абсолютные координаты верхнего левого и нижнего прававого углов вьюпорта,
-	// dwMaximumWindowSize - максимальное возможное значение размеров вьюпорта на данный момент.
+	// Updates all fields of the _CONSOLE_SCREEN_BUFFER_INFO structure:
+
+	// dwSize - buffer sizes,
+	// dwCursorPosition - Absolute cursor coordinates,
+	// wAttributes - Attributes applicable to the current data display in the buffer,
+	// srWindow - Absolute coordinates of the upper-left and lower-right corners of the viewport,
+	// dwMaximumWindowSize - the maximum possible size of the viewport at the moment.
 	bool updateConsoleInfo() {
 		return GetConsoleScreenBufferInfo(hConsole, &_csbi);
 	}
@@ -32,9 +33,9 @@ namespace
 		return wstr;
 	}
 
-	// Выводит wide-строку в позицию курсора. Если строка не помещается до правого края буфера,
-	// лишняя часть отбрасывается. После вывода курсор стоит сразу за последним
-	// выведенным символом, но не дальше последнего столбца буфера.
+	// Outputs a wide string to the cursor position. If the line does not fit to the right edge of the buffer,
+	// the extra part is discarded. After the output, the cursor is immediately behind the last outputted character,
+	// but no further than the last column of the buffer. The function updates the console information, calculates
 	void writeClamped(const std::wstring &wline, WORD attributes) {
 		if (!updateConsoleInfo()) {
 			throw std::runtime_error(
@@ -98,7 +99,11 @@ void console::setViewportRECT(const SMALL_RECT &viewport) {
 	}
 
 	// buffer compliance check (an updated CSBI is required)
-	updateConsoleInfo();
+	if (!updateConsoleInfo()) {
+		throw std::runtime_error(
+			"GetConsoleScreenBufferInfo failed: " + std::to_string(GetLastError())
+		);
+	}
 
 	if (viewport.Right >= _csbi.dwSize.X ||
 		viewport.Bottom >= _csbi.dwSize.Y) {
@@ -117,34 +122,47 @@ void console::setViewportRECT(const SMALL_RECT &viewport) {
 		);
 	}
 
-	updateConsoleInfo();
+	if (!updateConsoleInfo()) {
+		throw std::runtime_error(
+			"GetConsoleScreenBufferInfo failed: " + std::to_string(GetLastError())
+		);
+	}
 }
 
 void console::setViewportSize(const short width, const short height) {
-	//an updated CSBI is required
-	updateConsoleInfo();
+	if (!updateConsoleInfo()) {
+		throw std::runtime_error(
+			"GetConsoleScreenBufferInfo failed: " + std::to_string(GetLastError())
+		);
+	}
 
 	SMALL_RECT newViewport = _csbi.srWindow;
-	newViewport.Right = newViewport.Left + width - 1;
-	newViewport.Bottom = newViewport.Top + height - 1;
+	newViewport.Right = static_cast<SHORT>(newViewport.Left + width - 1);
+	newViewport.Bottom = static_cast<SHORT>(newViewport.Top + height - 1);
 	setViewportRECT(newViewport);
 }
 
 void console::setViewportPosition(const short x, const short y) {
-	//an updated CSBI is required
-	updateConsoleInfo();
+	if (!updateConsoleInfo()) {
+		throw std::runtime_error(
+			"GetConsoleScreenBufferInfo failed: " + std::to_string(GetLastError())
+		);
+	}
 
 	SMALL_RECT curViewport = _csbi.srWindow;
 	short width = curViewport.Right - curViewport.Left + 1;
 	short height = curViewport.Bottom - curViewport.Top + 1;
 
-	SMALL_RECT newViewport = { x, y, x + width - 1, y + height - 1 };
+	SMALL_RECT newViewport = { x, y, static_cast<SHORT>(x + width - 1), static_cast<SHORT>(y + height - 1) };
 	setViewportRECT(newViewport);
 }
 
 COORD console::getViewportPosition() {
-	//an updated CSBI is required
-	updateConsoleInfo();
+	if (!updateConsoleInfo()) {
+		throw std::runtime_error(
+			"GetConsoleScreenBufferInfo failed: " + std::to_string(GetLastError())
+		);
+	}
 
 	return {
 	static_cast<short>(_csbi.srWindow.Left),
@@ -153,8 +171,12 @@ COORD console::getViewportPosition() {
 }
 
 COORD console::getViewportSize() {
-	//an updated CSBI is required
-	updateConsoleInfo();
+	if (!updateConsoleInfo()) {
+		throw std::runtime_error(
+			"GetConsoleScreenBufferInfo failed: " + std::to_string(GetLastError())
+		);
+	}
+
 
 	return {
 	static_cast<short>(_csbi.srWindow.Right - _csbi.srWindow.Left + 1),
@@ -166,15 +188,6 @@ COORD console::getViewportSize() {
 // Buffer
 
 void console::setBufferSize(const short width, const short height) {
-	// Check for exceeding the limits of possible values
-	if (width > SHRT_MAX || height > SHRT_MAX) {
-		throw std::overflow_error(
-			std::string("Maximum size error: width or height of buffer is greater than SHRT_MAX.\n") +
-			"width: " + std::to_string(width) + '\n' +
-			"height: " + std::to_string(height) + '\n'
-		);
-	}
-
 	// Checking the minimum dimensions
 	if (width < _minSize.X || height < _minSize.Y) {
 		throw std::underflow_error(
@@ -184,8 +197,11 @@ void console::setBufferSize(const short width, const short height) {
 		);
 	}
 
-	//an updated CSBI is required
-	updateConsoleInfo();
+	if (!updateConsoleInfo()) {
+		throw std::runtime_error(
+			"GetConsoleScreenBufferInfo failed: " + std::to_string(GetLastError())
+		);
+	}
 
 	// Buffer must be strictly larger than the maximum index of the current viewport
 	if (width <= _csbi.srWindow.Right ||
@@ -207,20 +223,27 @@ void console::setBufferSize(const short width, const short height) {
 		);
 	}
 
-	updateConsoleInfo();
+	if (!updateConsoleInfo()) {
+		throw std::runtime_error(
+			"GetConsoleScreenBufferInfo failed: " + std::to_string(GetLastError())
+		);
+	}
 }
 
 COORD console::getBufferSize() {
-	//an updated CSBI is required
-	updateConsoleInfo();
+	if (!updateConsoleInfo()) {
+		throw std::runtime_error(
+			"GetConsoleScreenBufferInfo failed: " + std::to_string(GetLastError())
+		);
+	}
 
 	return _csbi.dwSize;
 }
 
 
-/* ===== СТИЛИЗАЦИЯ СТРОК ===== */
+/* ===== LINE STYLING ===== */
 
-// Метод для работы с ANSI/Unicode строками
+// Method for working with ANSI/Unicode strings
 void console::printStyle(const std::string& line, text_color t_col, bg_color b_col) {
 	if (line.empty()) { return; }
 
@@ -238,8 +261,18 @@ void console::printStyleLine(const std::string &line, text_color t_col, bg_color
 // Cursor
 
 void console::setCursorPosition(const short x, const short y) {
-	// an updated CSBI is required
-	updateConsoleInfo();
+	if (x < 0 || y < 0) {
+		throw std::out_of_range(
+			std::string("The received coordinates are negative!\n") +
+			"Requested X/Y: " + std::to_string(x) + "/" + std::to_string(y) + '\n'
+		);
+	}
+
+	if (!updateConsoleInfo()) {
+		throw std::runtime_error(
+			"GetConsoleScreenBufferInfo failed: " + std::to_string(GetLastError())
+		);
+	}
 
 	// Check: the coordinate must be strictly less than the buffer size.
 	if (x >= _csbi.dwSize.X ||
@@ -267,8 +300,11 @@ void console::setCursorPosition(const short x, const short y) {
 }
 
 void console::moveToNextLine(bool line_begin) {
-	//an updated CSBI is required
-	updateConsoleInfo();
+	if (!updateConsoleInfo()) {
+		throw std::runtime_error(
+			"GetConsoleScreenBufferInfo failed: " + std::to_string(GetLastError())
+		);
+	}
 
 	if (line_begin)
 		_csbi.dwCursorPosition.X = 0;
@@ -294,8 +330,11 @@ void console::moveToNextLine(bool line_begin) {
 }
 
 COORD console::getCursorPosition() {
-	//an updated CSBI is required
-	updateConsoleInfo();
+	if (!updateConsoleInfo()) {
+		throw std::runtime_error(
+			"GetConsoleScreenBufferInfo failed: " + std::to_string(GetLastError())
+		);
+	}
 
 	return _csbi.dwCursorPosition;
 }
