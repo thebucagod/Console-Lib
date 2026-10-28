@@ -17,3 +17,7 @@ else()
 endif()
 
 option(BUILD_EXAMPLES "Build usage examples" ${_console_top_level})
+
+if(BUILD_EXAMPLES)
+	add_subdirectory(examples)
+endif()
