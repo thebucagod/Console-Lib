@@ -10,9 +10,9 @@ It wraps a handful of WinAPI console functions (`WriteConsoleOutputW`, `SetConso
 
 ## Screenshots
 
-> ![Output of basic_example](imgs/all.png)
+![Output of basic_example](imgs/all.png)
 
-> ![Output of basic_example](imgs/stylesOnOneLine.png)
+![Several styles on one line](imgs/stylesOnOneLine.png)
 
 ---
 
@@ -30,24 +30,61 @@ It wraps a handful of WinAPI console functions (`WriteConsoleOutputW`, `SetConso
 ## Requirements
 
 - Windows
-- A C++ compiler with C++14 or newer (tested with MSVC)
+- A C++17 compiler (tested with MSVC)
+- CMake 3.15 or newer (optional, see below)
 - Output must go to a real console window (not redirected to a file or pipe)
+
+## Project layout
+
+```
+include/        console.h, color.h
+src/            console.cpp
+examples/       basic_example.cpp
+imgs/           screenshots used in this README
+CMakeLists.txt
+```
 
 ## Getting started
 
-1. Copy `console.h`, `console.cpp` and `color.h` into your project.
-2. Add `console.cpp` to your build.
-3. Compile with UTF-8 source encoding enabled.
+### Option 1: CMake
 
-**MSVC command line:**
+Add the library to your project and link against it:
+
+```cmake
+add_subdirectory(console)   # path to this repository
+target_link_libraries(your_app PRIVATE console)
+```
+
+The `console` target exposes the `include/` directory automatically, so `#include "console.h"` works right away.
+
+### Option 2: Visual Studio without CMake
+
+1. Copy `include/console.h`, `include/color.h` and `src/console.cpp` into your project.
+2. Add them to the project (Project -> Add Existing Item).
+3. Open Project Properties -> C/C++ -> Command Line -> Additional Options and add `/utf-8`.
+4. Use `#include "console.h"` and the `console` namespace.
+
+> The `/utf-8` flag matters. Without it, string literals with non-ASCII characters (for example Cyrillic) are stored in the system code page, and the library, which expects UTF-8, will print garbage. The CMake example target sets this flag for you.
+
+### Option 3: command line (MSVC)
+
+From a Developer Command Prompt in the repository root:
 
 ```
-cl /EHsc /std:c++17 /utf-8 basic_example.cpp console.cpp
+cl /EHsc /std:c++17 /utf-8 /Iinclude examples\basic_example.cpp src\console.cpp
 ```
 
-**Visual Studio:** Project Properties -> C/C++ -> Command Line -> Additional Options -> add `/utf-8`.
+## Building the example
 
-> The `/utf-8` flag matters. Without it, string literals with non-ASCII characters (for example Cyrillic) are stored in the system code page, and the library, which expects UTF-8, will print garbage.
+Run these commands from the **repository root** (the folder that contains the top-level `CMakeLists.txt`):
+
+```
+cmake -S . -B build
+cmake --build build --config Release
+build/examples/Release/basic_example.exe
+```
+
+Examples are built by default when this repository is the top-level project. If you add it to your own project with `add_subdirectory`, they are skipped unless you set `-DBUILD_EXAMPLES=ON`.
 
 ## Quick example
 
@@ -72,9 +109,9 @@ int main() {
 }
 ```
 
-A longer, commented walkthrough is in [`basic_example.cpp`](basic_example.cpp).
+A longer, commented walkthrough is in [`examples/basic_example.cpp`](examples/basic_example.cpp).
 
-> ![Output of basic_example](imgs/QuickExample.png)
+![Quick example output](imgs/QuickExample.png)
 
 ## API overview
 
@@ -90,7 +127,7 @@ A longer, commented walkthrough is in [`basic_example.cpp`](basic_example.cpp).
 | `getViewportPosition()` / `setViewportPosition(x, y)` | Reads or changes the top-left corner of the visible area (scrolling). |
 | `setViewportRECT(rect)` | Sets the position and size of the viewport at once. |
 
-All functions live in the `console` namespace. Full parameter and exception descriptions are in `console.h`.
+All functions live in the `console` namespace. Full parameter and exception descriptions are in `include/console.h`.
 
 ### Colors
 
