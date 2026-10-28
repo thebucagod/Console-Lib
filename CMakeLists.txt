@@ -10,8 +10,10 @@ add_library(console src/console.cpp)
 target_include_directories(console PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_compile_features(console PRIVATE cxx_std_17)
 
-option(BUILD_EXAMPLES "Собирать ли примеры использования?" ON)
-
-if(BUILD_EXAMPLES)
-	add_subdirectory(examples)
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+	set(_console_top_level ON)
+else()
+	set(_console_top_level OFF)
 endif()
+
+option(BUILD_EXAMPLES "Build usage examples" ${_console_top_level})
